@@ -50,6 +50,13 @@ function formatDdMmSlash(value: string) {
   return `${d.slice(0, 2)}/${d.slice(2)}`;
 }
 
+/** Format up-to-4 raw digits as hh:mm military time for display. */
+function formatHhMmColon(value: string) {
+  const d = digits(value, 4);
+  if (d.length <= 2) return d;
+  return `${d.slice(0, 2)}:${d.slice(2)}`;
+}
+
 function parseDdmm(ddmm: string): Date | undefined {
   const raw = ddmm.replace(/\D/g, "");
   if (!/^(0[1-9]|[12]\d|3[01])(0[1-9]|1[0-2])$/.test(raw)) return undefined;
@@ -61,10 +68,10 @@ function parseDdmm(ddmm: string): Date | undefined {
 
 function Index() {
   const [bidStatus, setBidStatus] = useState<BidStatus>("RSV_PR_OG");
-  const [timeOfFatigue, setTimeOfFatigue] = useState("2340");
-  const [signInTime, setSignInTime] = useState("2215");
+  const [timeOfFatigue, setTimeOfFatigue] = useState("23:40");
+  const [signInTime, setSignInTime] = useState("22:15");
   const [backForDutyDate, setBackForDutyDate] = useState("05/12");
-  const [backForDutyTime, setBackForDutyTime] = useState("0730");
+  const [backForDutyTime, setBackForDutyTime] = useState("07:30");
   const [femCompleted, setFemCompleted] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -73,10 +80,10 @@ function Index() {
     () =>
       calculateFatigue({
         bidStatus,
-        timeOfFatigue,
-        signInTime,
+        timeOfFatigue: timeOfFatigue.replace(/\D/g, ""),
+        signInTime: signInTime.replace(/\D/g, ""),
         backForDutyDate: backForDutyDate.replace(/\D/g, ""),
-        backForDutyTime,
+        backForDutyTime: backForDutyTime.replace(/\D/g, ""),
         femCompleted,
       }),
     [bidStatus, timeOfFatigue, signInTime, backForDutyDate, backForDutyTime, femCompleted],
@@ -84,8 +91,8 @@ function Index() {
 
   // Whether the fatigue call happened before or after the sign-in time.
   const fatigueRelative = useMemo(() => {
-    const si = parseHhmm(signInTime);
-    const tf = parseHhmm(timeOfFatigue);
+    const si = parseHhmm(signInTime.replace(/\D/g, ""));
+    const tf = parseHhmm(timeOfFatigue.replace(/\D/g, ""));
     if (si === null || tf === null) return null;
     return tf < si ? "Before Sign in" : "After Sign in";
   }, [signInTime, timeOfFatigue]);
@@ -191,9 +198,9 @@ function Index() {
                       inputMode="numeric"
                       className={fieldInput}
                       value={timeOfFatigue}
-                      onChange={(e) => setTimeOfFatigue(digits(e.target.value, 4))}
+                      onChange={(e) => setTimeOfFatigue(formatHhMmColon(e.target.value))}
                     />
-                    <span className="font-mono text-xs text-muted-foreground">hhmm</span>
+                    <span className="font-mono text-xs text-muted-foreground">hh:mm</span>
                   </div>
                 </div>
                 <div>
@@ -207,9 +214,9 @@ function Index() {
                       inputMode="numeric"
                       className={fieldInput}
                       value={signInTime}
-                      onChange={(e) => setSignInTime(digits(e.target.value, 4))}
+                      onChange={(e) => setSignInTime(formatHhMmColon(e.target.value))}
                     />
-                    <span className="font-mono text-xs text-muted-foreground">hhmm</span>
+                    <span className="font-mono text-xs text-muted-foreground">hh:mm</span>
                   </div>
                 </div>
               </div>
@@ -232,9 +239,9 @@ function Index() {
                     inputMode="numeric"
                     className={fieldInput}
                     value={backForDutyTime}
-                    onChange={(e) => setBackForDutyTime(digits(e.target.value, 4))}
+                    onChange={(e) => setBackForDutyTime(formatHhMmColon(e.target.value))}
                   />
-                  <span className="font-mono text-xs text-muted-foreground">hhmm</span>
+                  <span className="font-mono text-xs text-muted-foreground">hh:mm</span>
                   <span className="h-4 w-px bg-border" />
                   <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                     <PopoverTrigger asChild>
