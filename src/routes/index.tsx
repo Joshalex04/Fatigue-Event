@@ -193,6 +193,7 @@ function Index() {
       backForDutyTime,
       femCompleted,
       conditions,
+      rejoinSequence,
       payHours: result.payHours,
       eventNumber: result.eventNumber,
       status: result.status,
