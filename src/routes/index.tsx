@@ -8,6 +8,7 @@ import {
   BID_STATUS_OPTIONS,
   calculateFatigue,
   entriesToText,
+  parseHhmm,
   type BidStatus,
 } from "@/lib/fatigue";
 
@@ -72,6 +73,14 @@ function Index() {
       }),
     [bidStatus, timeOfFatigue, signInTime, backForDutyDate, backForDutyTime, femCompleted],
   );
+
+  // Whether the fatigue call happened before or after the sign-in time.
+  const fatigueRelative = useMemo(() => {
+    const si = parseHhmm(signInTime);
+    const tf = parseHhmm(timeOfFatigue);
+    if (si === null || tf === null) return null;
+    return tf < si ? "Before Sign in" : "After Sign in";
+  }, [signInTime, timeOfFatigue]);
 
   const recalcKey = `${bidStatus}${timeOfFatigue}${signInTime}${backForDutyDate}${backForDutyTime}${femCompleted}`;
 
@@ -350,6 +359,22 @@ function Index() {
                   <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
                     {result.notes}
                   </p>
+                ) : null}
+                {fatigueRelative ? (
+                  <div className="mt-3 flex items-center gap-2 rounded-lg bg-secondary/30 px-3 py-2 ring-1 ring-border">
+                    <span className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
+                      Fatigue
+                    </span>
+                    <span
+                      className={
+                        fatigueRelative === "Before Sign in"
+                          ? "font-mono text-sm font-semibold text-warning"
+                          : "font-mono text-sm font-semibold text-primary"
+                      }
+                    >
+                      {fatigueRelative}
+                    </span>
+                  </div>
                 ) : null}
               </div>
             </div>
