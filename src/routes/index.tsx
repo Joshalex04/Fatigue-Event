@@ -8,6 +8,7 @@ import {
   BID_STATUS_OPTIONS,
   calculateFatigue,
   entriesToText,
+  parseHhmm,
   type BidStatus,
 } from "@/lib/fatigue";
 
