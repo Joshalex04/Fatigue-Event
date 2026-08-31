@@ -266,6 +266,20 @@ function Index() {
             </div>
           </div>
           <div className="flex items-center gap-2 font-mono text-xs">
+            <button
+              type="button"
+              onClick={save}
+              className="inline-flex items-center gap-1.5 rounded-md bg-secondary/40 px-3 py-1.5 text-sm font-semibold text-foreground ring-1 ring-border transition-transform hover:-translate-y-px"
+            >
+              <span className="font-mono text-xs">{justSaved ? "SAVED" : "SAVE"}</span>
+            </button>
+            <button
+              type="button"
+              onClick={clearForm}
+              className="inline-flex items-center gap-1.5 rounded-md bg-secondary/40 px-3 py-1.5 text-sm font-semibold text-muted-foreground ring-1 ring-border transition-transform hover:-translate-y-px"
+            >
+              <span className="font-mono text-xs">CLEAR</span>
+            </button>
             <div className="flex items-center gap-2 rounded-md bg-secondary/40 px-3 py-1.5 ring-1 ring-border focus-within:ring-2 focus-within:ring-primary/40">
               <span className="text-muted-foreground">Scheduler</span>
               <input
