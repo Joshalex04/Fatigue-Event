@@ -198,9 +198,9 @@ function Index() {
                       inputMode="numeric"
                       className={fieldInput}
                       value={timeOfFatigue}
-                      onChange={(e) => setTimeOfFatigue(formatHhMmColon(e.target.value))}
+                      onChange={(e) => setTimeOfFatigue(digits(e.target.value, 4))}
                     />
-                    <span className="font-mono text-xs text-muted-foreground">hh:mm</span>
+                    <span className="font-mono text-xs text-muted-foreground">hhmm</span>
                   </div>
                 </div>
                 <div>
