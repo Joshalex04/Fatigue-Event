@@ -326,7 +326,7 @@ function Index() {
                 <div className="mt-4 grid grid-cols-3 gap-3">
                   <div className="rounded-lg bg-secondary/30 p-3 ring-1 ring-border">
                     <p className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
-                      Event
+                      Duty Time
                     </p>
                     <p className="font-mono text-lg font-semibold text-primary">
                       {result.eventNumber}
