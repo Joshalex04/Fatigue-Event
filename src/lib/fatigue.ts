@@ -249,6 +249,13 @@ export function calculateFatigue(input: FatigueInput): FatigueResult {
     });
   }
 
+  // Each toggled condition contributes its required entry.
+  for (const option of CONDITION_OPTIONS) {
+    if (input.conditions?.includes(option.id)) {
+      entries.push({ code: option.code, value: option.value, tone: option.tone });
+    }
+  }
+
   return {
     blocked: false,
     errors: [],
