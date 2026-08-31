@@ -68,10 +68,10 @@ function parseDdmm(ddmm: string): Date | undefined {
 
 function Index() {
   const [bidStatus, setBidStatus] = useState<BidStatus>("RSV_PR_OG");
-  const [timeOfFatigue, setTimeOfFatigue] = useState("2340");
-  const [signInTime, setSignInTime] = useState("2215");
+  const [timeOfFatigue, setTimeOfFatigue] = useState("23:40");
+  const [signInTime, setSignInTime] = useState("22:15");
   const [backForDutyDate, setBackForDutyDate] = useState("05/12");
-  const [backForDutyTime, setBackForDutyTime] = useState("0730");
+  const [backForDutyTime, setBackForDutyTime] = useState("07:30");
   const [femCompleted, setFemCompleted] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [copied, setCopied] = useState(false);
