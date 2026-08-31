@@ -6,10 +6,12 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   BID_STATUS_OPTIONS,
+  CONDITION_OPTIONS,
   calculateFatigue,
   entriesToText,
   parseHhmm,
   type BidStatus,
+  type ConditionId,
 } from "@/lib/fatigue";
 
 export const Route = createFileRoute("/")({
@@ -76,6 +78,7 @@ interface SavedEvent {
   backForDutyDate: string;
   backForDutyTime: string;
   femCompleted: boolean;
+  conditions?: ConditionId[];
   payHours: string;
   eventNumber: string;
   status: string;
@@ -92,11 +95,17 @@ function Index() {
   const [backForDutyDate, setBackForDutyDate] = useState("05/12");
   const [backForDutyTime, setBackForDutyTime] = useState("0730");
   const [femCompleted, setFemCompleted] = useState(false);
+  const [conditions, setConditions] = useState<ConditionId[]>([]);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [eventCalendarOpen, setEventCalendarOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState<SavedEvent[]>([]);
   const [justSaved, setJustSaved] = useState(false);
+
+  const toggleCondition = (id: ConditionId) =>
+    setConditions((prev) =>
+      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id],
+    );
 
   useEffect(() => {
     try {
@@ -125,8 +134,17 @@ function Index() {
         backForDutyDate: backForDutyDate.replace(/\D/g, ""),
         backForDutyTime: backForDutyTime.replace(/\D/g, ""),
         femCompleted,
+        conditions,
       }),
-    [bidStatus, timeOfFatigue, signInTime, backForDutyDate, backForDutyTime, femCompleted],
+    [
+      bidStatus,
+      timeOfFatigue,
+      signInTime,
+      backForDutyDate,
+      backForDutyTime,
+      femCompleted,
+      conditions,
+    ],
   );
 
   // Whether the fatigue call happened before or after the sign-in time.
@@ -137,7 +155,7 @@ function Index() {
     return tf < si ? "Before Sign in" : "After Sign in";
   }, [signInTime, timeOfFatigue]);
 
-  const recalcKey = `${bidStatus}${timeOfFatigue}${signInTime}${backForDutyDate}${backForDutyTime}${femCompleted}`;
+  const recalcKey = `${bidStatus}${timeOfFatigue}${signInTime}${backForDutyDate}${backForDutyTime}${femCompleted}${conditions.join(",")}`;
 
   const copy = async () => {
     await navigator.clipboard.writeText(entriesToText(result));
@@ -156,6 +174,7 @@ function Index() {
       backForDutyDate,
       backForDutyTime,
       femCompleted,
+      conditions,
       payHours: result.payHours,
       eventNumber: result.eventNumber,
       status: result.status,
@@ -174,6 +193,7 @@ function Index() {
     setBackForDutyDate(record.backForDutyDate);
     setBackForDutyTime(record.backForDutyTime);
     setFemCompleted(record.femCompleted);
+    setConditions(record.conditions ?? []);
   };
 
   const remove = (id: string) => persist(saved.filter((r) => r.id !== id));
@@ -498,27 +518,64 @@ function Index() {
               </div>
             </div>
 
-            {/* Conditional section — displayed before Required Entries when its conditions are met.
-                Conditions will be wired up later; until then this section stays hidden. */}
-            {(() => {
-              const showConditionalSection = false; // TODO: set conditions later
-              if (!showConditionalSection) return null;
-              return (
-                <div className="rounded-2xl bg-panel/40 p-5 ring-1 ring-border backdrop-blur-xl sm:p-6">
-                  <div className="mb-4 flex items-center justify-between">
-                    <p className="font-mono text-[11px] tracking-[0.2em] text-muted-foreground uppercase">
-                      Conditions
-                    </p>
-                    <span className="font-mono text-[11px] text-muted-foreground">—</span>
-                  </div>
-                  <div className="rounded-xl bg-field/60 p-4 ring-1 ring-border">
-                    <p className="text-xs leading-relaxed text-muted-foreground">
-                      Conditional content will appear here based on the rules you set later.
-                    </p>
-                  </div>
-                </div>
-              );
-            })()}
+            {/* Conditions — each toggle adds its required entry below. */}
+            <div className="rounded-2xl bg-panel/40 p-5 ring-1 ring-border backdrop-blur-xl sm:p-6">
+              <div className="mb-4 flex items-center justify-between">
+                <p className="font-mono text-[11px] tracking-[0.2em] text-muted-foreground uppercase">
+                  Conditions
+                </p>
+                <span className="font-mono text-[11px] text-muted-foreground">
+                  {conditions.length} / {CONDITION_OPTIONS.length}
+                </span>
+              </div>
+              <div className="grid gap-2 rounded-xl bg-field/60 p-3 ring-1 ring-border sm:grid-cols-2">
+                {CONDITION_OPTIONS.map((option) => {
+                  const active = conditions.includes(option.id);
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => toggleCondition(option.id)}
+                      className={
+                        active
+                          ? "flex items-start gap-3 rounded-lg bg-primary/10 p-3 text-left ring-1 ring-primary/50 transition-colors"
+                          : "flex items-start gap-3 rounded-lg bg-secondary/20 p-3 text-left ring-1 ring-border transition-colors hover:bg-secondary/40"
+                      }
+                    >
+                      <span
+                        className={
+                          active
+                            ? "mt-0.5 grid size-5 shrink-0 place-items-center rounded bg-primary text-[11px] font-bold text-primary-foreground"
+                            : "mt-0.5 grid size-5 shrink-0 place-items-center rounded bg-secondary/50 text-[11px] text-muted-foreground ring-1 ring-border"
+                        }
+                      >
+                        {active ? "✓" : ""}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block text-sm font-medium">{option.label}</span>
+                        <span className="mt-0.5 block text-xs text-muted-foreground">
+                          {option.hint}
+                        </span>
+                        <span
+                          className={
+                            active
+                              ? "mt-1 inline-block font-mono text-[11px] text-primary"
+                              : "mt-1 inline-block font-mono text-[11px] text-muted-foreground"
+                          }
+                        >
+                          {option.code}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+                Each condition you turn on adds its entry to the Required Entries list below.
+              </p>
+            </div>
+
 
             <div className="flex-1 rounded-2xl bg-panel/40 p-5 ring-1 ring-border backdrop-blur-xl sm:p-6">
               <div className="mb-4 flex items-center justify-between">
