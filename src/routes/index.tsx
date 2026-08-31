@@ -498,6 +498,28 @@ function Index() {
               </div>
             </div>
 
+            {/* Conditional section — displayed before Required Entries when its conditions are met.
+                Conditions will be wired up later; until then this section stays hidden. */}
+            {(() => {
+              const showConditionalSection = false; // TODO: set conditions later
+              if (!showConditionalSection) return null;
+              return (
+                <div className="rounded-2xl bg-panel/40 p-5 ring-1 ring-border backdrop-blur-xl sm:p-6">
+                  <div className="mb-4 flex items-center justify-between">
+                    <p className="font-mono text-[11px] tracking-[0.2em] text-muted-foreground uppercase">
+                      Conditions
+                    </p>
+                    <span className="font-mono text-[11px] text-muted-foreground">—</span>
+                  </div>
+                  <div className="rounded-xl bg-field/60 p-4 ring-1 ring-border">
+                    <p className="text-xs leading-relaxed text-muted-foreground">
+                      Conditional content will appear here based on the rules you set later.
+                    </p>
+                  </div>
+                </div>
+              );
+            })()}
+
             <div className="flex-1 rounded-2xl bg-panel/40 p-5 ring-1 ring-border backdrop-blur-xl sm:p-6">
               <div className="mb-4 flex items-center justify-between">
                 <p className="font-mono text-[11px] tracking-[0.2em] text-muted-foreground uppercase">
