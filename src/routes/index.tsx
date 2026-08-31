@@ -68,10 +68,10 @@ function parseDdmm(ddmm: string): Date | undefined {
 
 function Index() {
   const [bidStatus, setBidStatus] = useState<BidStatus>("RSV_PR_OG");
-  const [timeOfFatigue, setTimeOfFatigue] = useState("23:40");
-  const [signInTime, setSignInTime] = useState("22:15");
+  const [timeOfFatigue, setTimeOfFatigue] = useState("2340");
+  const [signInTime, setSignInTime] = useState("2215");
   const [backForDutyDate, setBackForDutyDate] = useState("05/12");
-  const [backForDutyTime, setBackForDutyTime] = useState("07:30");
+  const [backForDutyTime, setBackForDutyTime] = useState("0730");
   const [femCompleted, setFemCompleted] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -198,9 +198,9 @@ function Index() {
                       inputMode="numeric"
                       className={fieldInput}
                       value={timeOfFatigue}
-                      onChange={(e) => setTimeOfFatigue(formatHhMmColon(e.target.value))}
+                      onChange={(e) => setTimeOfFatigue(digits(e.target.value, 4))}
                     />
-                    <span className="font-mono text-xs text-muted-foreground">hh:mm</span>
+                    <span className="font-mono text-xs text-muted-foreground">hhmm</span>
                   </div>
                 </div>
                 <div>
@@ -214,9 +214,9 @@ function Index() {
                       inputMode="numeric"
                       className={fieldInput}
                       value={signInTime}
-                      onChange={(e) => setSignInTime(formatHhMmColon(e.target.value))}
+                      onChange={(e) => setSignInTime(digits(e.target.value, 4))}
                     />
-                    <span className="font-mono text-xs text-muted-foreground">hh:mm</span>
+                    <span className="font-mono text-xs text-muted-foreground">hhmm</span>
                   </div>
                 </div>
               </div>
@@ -239,9 +239,9 @@ function Index() {
                     inputMode="numeric"
                     className={fieldInput}
                     value={backForDutyTime}
-                    onChange={(e) => setBackForDutyTime(formatHhMmColon(e.target.value))}
+                    onChange={(e) => setBackForDutyTime(digits(e.target.value, 4))}
                   />
-                  <span className="font-mono text-xs text-muted-foreground">hh:mm</span>
+                  <span className="font-mono text-xs text-muted-foreground">hhmm</span>
                   <span className="h-4 w-px bg-border" />
                   <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                     <PopoverTrigger asChild>
