@@ -573,5 +573,74 @@ function Index() {
         </footer>
       </div>
     </div>
+        </div>
+
+        <section className="mt-5 rounded-2xl bg-panel/40 p-5 ring-1 ring-border backdrop-blur-xl sm:p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <p className="font-mono text-[11px] tracking-[0.2em] text-muted-foreground uppercase">
+              Saved Events · {saved.length}
+            </p>
+            {saved.length > 0 ? (
+              <button
+                type="button"
+                onClick={() => persist([])}
+                className="font-mono text-[11px] text-muted-foreground uppercase hover:text-destructive"
+              >
+                Clear all
+              </button>
+            ) : null}
+          </div>
+          {saved.length === 0 ? (
+            <p className="rounded-xl bg-field/60 px-3.5 py-6 text-center text-xs text-muted-foreground ring-1 ring-border">
+              No saved events yet — press SAVE to store the current calculation.
+            </p>
+          ) : (
+            <div className="divide-y divide-border overflow-hidden rounded-xl bg-field/60 font-mono text-sm ring-1 ring-border">
+              {saved.map((record) => (
+                <div key={record.id} className="flex flex-wrap items-center gap-3 px-3.5 py-3">
+                  <span className="text-primary">{record.eventDate}</span>
+                  <span className="text-muted-foreground">
+                    SI {record.signInTime} · FTG {record.timeOfFatigue}
+                  </span>
+                  <span className="text-muted-foreground">
+                    BFD {record.backForDutyDate} {record.backForDutyTime}
+                  </span>
+                  <span className="text-xs text-muted-foreground uppercase">
+                    {BID_STATUS_OPTIONS.find((o) => o.value === record.bidStatus)?.label}
+                  </span>
+                  <span className="ml-auto flex items-center gap-3">
+                    <span className="text-foreground">{record.payHours}</span>
+                    <span className={`text-xs font-semibold ${statusTone(record.status)}`}>
+                      {record.status}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => restore(record)}
+                      className="rounded-md bg-secondary/40 px-2.5 py-1 text-[11px] uppercase ring-1 ring-border hover:-translate-y-px"
+                    >
+                      Load
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Delete saved event"
+                      onClick={() => remove(record.id)}
+                      className="grid size-7 place-items-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <footer className="mt-6 flex flex-wrap items-center justify-between gap-2 font-mono text-[11px] text-muted-foreground">
+          <span className="tracking-[0.2em] uppercase">Internal tool · Crew Scheduling</span>
+          <span>Rules v0.9 · placeholder thresholds</span>
+        </footer>
+      </div>
+    </div>
   );
 }
+
