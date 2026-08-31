@@ -1,5 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   BID_STATUS_OPTIONS,
   calculateFatigue,
@@ -38,6 +42,14 @@ function digits(value: string, max: number) {
   return value.replace(/\D/g, "").slice(0, max);
 }
 
+function parseDdmm(ddmm: string): Date | undefined {
+  if (!/^(0[1-9]|[12]\d|3[01])(0[1-9]|1[0-2])$/.test(ddmm)) return undefined;
+  const day = Number(ddmm.slice(0, 2));
+  const month = Number(ddmm.slice(2)) - 1;
+  const now = new Date();
+  return new Date(now.getFullYear(), month, day);
+}
+
 function Index() {
   const [bidStatus, setBidStatus] = useState<BidStatus>("RSV_PR_OG");
   const [timeOfFatigue, setTimeOfFatigue] = useState("2340");
@@ -45,6 +57,7 @@ function Index() {
   const [backForDutyDate, setBackForDutyDate] = useState("0512");
   const [backForDutyTime, setBackForDutyTime] = useState("0730");
   const [femCompleted, setFemCompleted] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const result = useMemo(
@@ -205,6 +218,31 @@ function Index() {
                     onChange={(e) => setBackForDutyTime(digits(e.target.value, 4))}
                   />
                   <span className="font-mono text-xs text-muted-foreground">hhmm</span>
+                  <span className="h-4 w-px bg-border" />
+                  <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        aria-label="Pick back for duty date from calendar"
+                        className="grid size-7 shrink-0 place-items-center rounded-md text-primary transition-colors hover:bg-primary/10"
+                      >
+                        <CalendarIcon className="size-4" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="end">
+                      <Calendar
+                        mode="single"
+                        selected={parseDdmm(backForDutyDate)}
+                        onSelect={(date) => {
+                          if (!date) return;
+                          setBackForDutyDate(format(date, "ddMM"));
+                          setCalendarOpen(false);
+                        }}
+                        initialFocus
+                        className="p-3 pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
 
