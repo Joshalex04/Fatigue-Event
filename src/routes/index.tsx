@@ -74,6 +74,14 @@ function Index() {
     [bidStatus, timeOfFatigue, signInTime, backForDutyDate, backForDutyTime, femCompleted],
   );
 
+  // Whether the fatigue call happened before or after the sign-in time.
+  const fatigueRelative = useMemo(() => {
+    const si = parseHhmm(signInTime);
+    const tf = parseHhmm(timeOfFatigue);
+    if (si === null || tf === null) return null;
+    return tf < si ? "Before Sign in" : "After Sign in";
+  }, [signInTime, timeOfFatigue]);
+
   const recalcKey = `${bidStatus}${timeOfFatigue}${signInTime}${backForDutyDate}${backForDutyTime}${femCompleted}`;
 
   const copy = async () => {
