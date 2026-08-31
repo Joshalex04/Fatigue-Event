@@ -66,15 +66,55 @@ function parseDdmm(ddmm: string): Date | undefined {
   return new Date(now.getFullYear(), month, day);
 }
 
+interface SavedEvent {
+  id: string;
+  savedAt: string;
+  bidStatus: BidStatus;
+  eventDate: string;
+  timeOfFatigue: string;
+  signInTime: string;
+  backForDutyDate: string;
+  backForDutyTime: string;
+  femCompleted: boolean;
+  payHours: string;
+  eventNumber: string;
+  status: string;
+  entries: string;
+}
+
+const STORAGE_KEY = "fatigue-events-v1";
+
 function Index() {
   const [bidStatus, setBidStatus] = useState<BidStatus>("RSV_PR_OG");
+  const [eventDate, setEventDate] = useState(() => format(new Date(), "dd/MM"));
   const [timeOfFatigue, setTimeOfFatigue] = useState("2340");
   const [signInTime, setSignInTime] = useState("2215");
   const [backForDutyDate, setBackForDutyDate] = useState("05/12");
   const [backForDutyTime, setBackForDutyTime] = useState("0730");
   const [femCompleted, setFemCompleted] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [eventCalendarOpen, setEventCalendarOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [saved, setSaved] = useState<SavedEvent[]>([]);
+  const [justSaved, setJustSaved] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) setSaved(JSON.parse(raw) as SavedEvent[]);
+    } catch {
+      /* ignore corrupt storage */
+    }
+  }, []);
+
+  const persist = (next: SavedEvent[]) => {
+    setSaved(next);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      /* ignore quota errors */
+    }
+  };
 
   const result = useMemo(
     () =>
@@ -104,6 +144,47 @@ function Index() {
     setCopied(true);
     setTimeout(() => setCopied(false), 1600);
   };
+
+  const save = () => {
+    const record: SavedEvent = {
+      id: `${Date.now()}`,
+      savedAt: new Date().toISOString(),
+      bidStatus,
+      eventDate,
+      timeOfFatigue,
+      signInTime,
+      backForDutyDate,
+      backForDutyTime,
+      femCompleted,
+      payHours: result.payHours,
+      eventNumber: result.eventNumber,
+      status: result.status,
+      entries: entriesToText(result),
+    };
+    persist([record, ...saved].slice(0, 100));
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 1600);
+  };
+
+  const restore = (record: SavedEvent) => {
+    setBidStatus(record.bidStatus);
+    setEventDate(record.eventDate);
+    setTimeOfFatigue(record.timeOfFatigue);
+    setSignInTime(record.signInTime);
+    setBackForDutyDate(record.backForDutyDate);
+    setBackForDutyTime(record.backForDutyTime);
+    setFemCompleted(record.femCompleted);
+  };
+
+  const remove = (id: string) => persist(saved.filter((r) => r.id !== id));
+
+  const statusTone = (status: string) =>
+    status === "CLEAR"
+      ? "text-primary"
+      : status === "HOLD"
+        ? "text-warning"
+        : "text-destructive";
+
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-background font-sans text-foreground antialiased">
