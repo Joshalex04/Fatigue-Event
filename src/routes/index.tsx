@@ -213,6 +213,7 @@ function Index() {
     setBackForDutyTime(record.backForDutyTime);
     setFemCompleted(record.femCompleted);
     setConditions(record.conditions ?? []);
+    setRejoinSequence(record.rejoinSequence ?? null);
   };
 
   const remove = (id: string) => persist(saved.filter((r) => r.id !== id));
