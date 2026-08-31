@@ -567,13 +567,6 @@ function Index() {
           </section>
         </div>
 
-        <footer className="mt-6 flex flex-wrap items-center justify-between gap-2 font-mono text-[11px] text-muted-foreground">
-          <span className="tracking-[0.2em] uppercase">Internal tool · Crew Scheduling</span>
-          <span>Rules v0.9 · placeholder thresholds</span>
-        </footer>
-      </div>
-    </div>
-        </div>
 
         <section className="mt-5 rounded-2xl bg-panel/40 p-5 ring-1 ring-border backdrop-blur-xl sm:p-6">
           <div className="mb-4 flex items-center justify-between">
