@@ -78,6 +78,7 @@ interface SavedEvent {
   backForDutyDate: string;
   backForDutyTime: string;
   femCompleted: boolean;
+  conditions?: ConditionId[];
   payHours: string;
   eventNumber: string;
   status: string;
@@ -173,6 +174,7 @@ function Index() {
       backForDutyDate,
       backForDutyTime,
       femCompleted,
+      conditions,
       payHours: result.payHours,
       eventNumber: result.eventNumber,
       status: result.status,
@@ -191,6 +193,7 @@ function Index() {
     setBackForDutyDate(record.backForDutyDate);
     setBackForDutyTime(record.backForDutyTime);
     setFemCompleted(record.femCompleted);
+    setConditions(record.conditions ?? []);
   };
 
   const remove = (id: string) => persist(saved.filter((r) => r.id !== id));
