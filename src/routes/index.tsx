@@ -242,7 +242,7 @@ function Index() {
                 Meridian Ops
               </p>
               <h1 className="max-w-[40ch] font-mono text-lg font-semibold tracking-tight text-balance">
-                Fatigue Event Calculator
+                Fatigue Event
               </h1>
             </div>
           </div>
