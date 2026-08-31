@@ -43,10 +43,18 @@ function digits(value: string, max: number) {
   return value.replace(/\D/g, "").slice(0, max);
 }
 
+/** Format up-to-4 raw digits as dd/mm for display. */
+function formatDdMmSlash(value: string) {
+  const d = digits(value, 4);
+  if (d.length <= 2) return d;
+  return `${d.slice(0, 2)}/${d.slice(2)}`;
+}
+
 function parseDdmm(ddmm: string): Date | undefined {
-  if (!/^(0[1-9]|[12]\d|3[01])(0[1-9]|1[0-2])$/.test(ddmm)) return undefined;
-  const day = Number(ddmm.slice(0, 2));
-  const month = Number(ddmm.slice(2)) - 1;
+  const raw = ddmm.replace(/\D/g, "");
+  if (!/^(0[1-9]|[12]\d|3[01])(0[1-9]|1[0-2])$/.test(raw)) return undefined;
+  const day = Number(raw.slice(0, 2));
+  const month = Number(raw.slice(2)) - 1;
   const now = new Date();
   return new Date(now.getFullYear(), month, day);
 }
@@ -55,7 +63,7 @@ function Index() {
   const [bidStatus, setBidStatus] = useState<BidStatus>("RSV_PR_OG");
   const [timeOfFatigue, setTimeOfFatigue] = useState("2340");
   const [signInTime, setSignInTime] = useState("2215");
-  const [backForDutyDate, setBackForDutyDate] = useState("0512");
+  const [backForDutyDate, setBackForDutyDate] = useState("05/12");
   const [backForDutyTime, setBackForDutyTime] = useState("0730");
   const [femCompleted, setFemCompleted] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -67,7 +75,7 @@ function Index() {
         bidStatus,
         timeOfFatigue,
         signInTime,
-        backForDutyDate,
+        backForDutyDate: backForDutyDate.replace(/\D/g, ""),
         backForDutyTime,
         femCompleted,
       }),
@@ -215,9 +223,9 @@ function Index() {
                     inputMode="numeric"
                     className={fieldInput}
                     value={backForDutyDate}
-                    onChange={(e) => setBackForDutyDate(digits(e.target.value, 4))}
+                    onChange={(e) => setBackForDutyDate(formatDdMmSlash(e.target.value))}
                   />
-                  <span className="font-mono text-xs text-muted-foreground">ddmm</span>
+                  <span className="font-mono text-xs text-muted-foreground">dd/mm</span>
                   <span className="h-4 w-px bg-border" />
                   <input
                     aria-label="Back for duty time"
@@ -244,7 +252,7 @@ function Index() {
                         selected={parseDdmm(backForDutyDate)}
                         onSelect={(date) => {
                           if (!date) return;
-                          setBackForDutyDate(format(date, "ddMM"));
+                          setBackForDutyDate(format(date, "dd/MM"));
                           setCalendarOpen(false);
                         }}
                         initialFocus
