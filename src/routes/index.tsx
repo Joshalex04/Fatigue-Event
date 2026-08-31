@@ -110,7 +110,7 @@ function Index() {
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState<SavedEvent[]>([]);
   const [justSaved, setJustSaved] = useState(false);
-  const [rejoinSequence, setRejoinSequence] = useState(false);
+  const [rejoinSequence, setRejoinSequence] = useState<boolean | null>(null);
 
   const toggleCondition = (id: ConditionId) =>
     setConditions((prev) =>
