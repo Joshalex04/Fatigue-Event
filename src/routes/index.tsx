@@ -133,8 +133,17 @@ function Index() {
         backForDutyDate: backForDutyDate.replace(/\D/g, ""),
         backForDutyTime: backForDutyTime.replace(/\D/g, ""),
         femCompleted,
+        conditions,
       }),
-    [bidStatus, timeOfFatigue, signInTime, backForDutyDate, backForDutyTime, femCompleted],
+    [
+      bidStatus,
+      timeOfFatigue,
+      signInTime,
+      backForDutyDate,
+      backForDutyTime,
+      femCompleted,
+      conditions,
+    ],
   );
 
   // Whether the fatigue call happened before or after the sign-in time.
@@ -145,7 +154,7 @@ function Index() {
     return tf < si ? "Before Sign in" : "After Sign in";
   }, [signInTime, timeOfFatigue]);
 
-  const recalcKey = `${bidStatus}${timeOfFatigue}${signInTime}${backForDutyDate}${backForDutyTime}${femCompleted}`;
+  const recalcKey = `${bidStatus}${timeOfFatigue}${signInTime}${backForDutyDate}${backForDutyTime}${femCompleted}${conditions.join(",")}`;
 
   const copy = async () => {
     await navigator.clipboard.writeText(entriesToText(result));
