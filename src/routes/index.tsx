@@ -253,9 +253,23 @@ function Index() {
             </div>
           </div>
           <div className="flex items-center gap-2 font-mono text-xs">
-            <span className="hidden items-center gap-2 rounded-md bg-secondary/40 px-3 py-1.5 text-muted-foreground ring-1 ring-border sm:inline-flex">
-              {schedulerName.trim() ? schedulerName.trim() : "Crew Ops Desk"}
-            </span>
+            <div className="flex items-center gap-2 rounded-md bg-secondary/40 px-3 py-1.5 ring-1 ring-border focus-within:ring-2 focus-within:ring-primary/40">
+              <span className="text-muted-foreground">Scheduler</span>
+              <input
+                aria-label="Scheduler name"
+                className="w-32 min-w-0 bg-transparent text-foreground outline-none placeholder:text-muted-foreground/60"
+                placeholder="Name"
+                value={schedulerName}
+                onChange={(e) => {
+                  setSchedulerName(e.target.value);
+                  try {
+                    localStorage.setItem("fatigue-scheduler-name", e.target.value);
+                  } catch {
+                    /* ignore */
+                  }
+                }}
+              />
+            </div>
           </div>
         </header>
 
