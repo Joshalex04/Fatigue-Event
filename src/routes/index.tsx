@@ -575,7 +575,13 @@ function Index() {
                       {fatigueRelative}
                     </span>
                     <div className="ml-2 flex items-center gap-2">
-                      <span className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
+                      <span
+                        className="font-mono text-[11px] font-bold tracking-wider uppercase"
+                        style={{
+                          color: "rgb(195, 0, 25)",
+                          textShadow: "0 0 8px rgba(195, 0, 25, 0.7)",
+                        }}
+                      >
                         Can Rejoin Next Sequence?
                       </span>
                       <button
