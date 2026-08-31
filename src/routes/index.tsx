@@ -334,7 +334,7 @@ function Index() {
                   </div>
                   <div className="rounded-lg bg-secondary/30 p-3 ring-1 ring-border">
                     <p className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
-                      Pay hrs
+                      Fatigue HRS
                     </p>
                     <p className="font-mono text-lg font-semibold">{result.payHours}</p>
                   </div>
