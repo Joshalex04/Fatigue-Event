@@ -50,6 +50,13 @@ function formatDdMmSlash(value: string) {
   return `${d.slice(0, 2)}/${d.slice(2)}`;
 }
 
+/** Format up-to-4 raw digits as hh:mm military time for display. */
+function formatHhMmColon(value: string) {
+  const d = digits(value, 4);
+  if (d.length <= 2) return d;
+  return `${d.slice(0, 2)}:${d.slice(2)}`;
+}
+
 function parseDdmm(ddmm: string): Date | undefined {
   const raw = ddmm.replace(/\D/g, "");
   if (!/^(0[1-9]|[12]\d|3[01])(0[1-9]|1[0-2])$/.test(raw)) return undefined;
