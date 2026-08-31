@@ -263,6 +263,47 @@ function Index() {
                 </div>
               </div>
 
+              <div>
+                <span className={labelCls}>Event Date (Fatigue call / Sign-in)</span>
+                <div className={`${fieldWrap} sm:max-w-xs`}>
+                  <span className="font-mono text-xs text-primary/70">Date</span>
+                  <input
+                    aria-label="Event date"
+                    inputMode="numeric"
+                    className={fieldInput}
+                    value={eventDate}
+                    onChange={(e) => setEventDate(formatDdMmSlash(e.target.value))}
+                  />
+                  <span className="font-mono text-xs text-muted-foreground">dd/mm</span>
+                  <span className="h-4 w-px bg-border" />
+                  <Popover open={eventCalendarOpen} onOpenChange={setEventCalendarOpen}>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        aria-label="Pick event date from calendar"
+                        className="grid size-7 shrink-0 place-items-center rounded-md text-primary transition-colors hover:bg-primary/10"
+                      >
+                        <CalendarIcon className="size-4" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="end">
+                      <Calendar
+                        mode="single"
+                        selected={parseDdmm(eventDate)}
+                        onSelect={(date) => {
+                          if (!date) return;
+                          setEventDate(format(date, "dd/MM"));
+                          setEventCalendarOpen(false);
+                        }}
+                        initialFocus
+                        className="p-3 pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+
+
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className={labelCls} htmlFor="fatigue">
