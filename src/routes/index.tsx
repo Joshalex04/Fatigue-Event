@@ -469,16 +469,8 @@ function Index() {
                     <p className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
                       Back to Duty
                     </p>
-                    <p
-                      className={
-                        result.status === "CLEAR"
-                          ? "font-mono text-lg font-semibold text-primary"
-                          : result.status === "HOLD"
-                            ? "font-mono text-lg font-semibold text-warning"
-                            : "font-mono text-lg font-semibold text-destructive"
-                      }
-                    >
-                      {result.status}
+                    <p className="font-mono text-lg font-semibold">
+                      {backForDutyDate} {backForDutyTime}
                     </p>
                   </div>
                 </div>
