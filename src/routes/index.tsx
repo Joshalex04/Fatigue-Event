@@ -238,9 +238,6 @@ function Index() {
               className="size-10 rounded-lg object-cover ring-1 ring-primary/30"
             />
             <div>
-              <p className="font-mono text-[11px] tracking-[0.25em] text-muted-foreground uppercase">
-                Meridian Ops
-              </p>
               <h1 className="max-w-[40ch] font-mono text-lg font-semibold tracking-tight text-balance">
                 Fatigue Event
               </h1>
