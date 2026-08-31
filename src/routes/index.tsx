@@ -360,6 +360,22 @@ function Index() {
                     {result.notes}
                   </p>
                 ) : null}
+                {fatigueRelative ? (
+                  <div className="mt-3 flex items-center gap-2 rounded-lg bg-secondary/30 px-3 py-2 ring-1 ring-border">
+                    <span className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
+                      Fatigue
+                    </span>
+                    <span
+                      className={
+                        fatigueRelative === "Before Sign in"
+                          ? "font-mono text-sm font-semibold text-warning"
+                          : "font-mono text-sm font-semibold text-primary"
+                      }
+                    >
+                      {fatigueRelative}
+                    </span>
+                  </div>
+                ) : null}
               </div>
             </div>
 
