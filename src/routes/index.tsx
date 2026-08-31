@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import fatigueLogoAsset from "@/assets/fatigue-logo.jpg.asset.json";
 import { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import { CalendarIcon, Trash2 } from "lucide-react";
@@ -231,9 +232,11 @@ function Index() {
       <div className="relative mx-auto max-w-7xl px-5 py-5 sm:px-8 sm:py-7">
         <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="grid size-10 place-items-center rounded-lg bg-primary/10 ring-1 ring-primary/30">
-              <span className="font-mono text-sm font-semibold text-primary">FE</span>
-            </div>
+            <img
+              src={fatigueLogoAsset.url}
+              alt="Fatigue Event Calculator logo"
+              className="size-10 rounded-lg object-cover ring-1 ring-primary/30"
+            />
             <div>
               <p className="font-mono text-[11px] tracking-[0.25em] text-muted-foreground uppercase">
                 Meridian Ops
