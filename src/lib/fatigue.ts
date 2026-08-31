@@ -14,6 +14,73 @@ export const BID_STATUS_OPTIONS: { value: BidStatus; label: string }[] = [
   { value: "RSV_FLYING", label: "RSV Flying" },
 ];
 
+/** Optional conditions the crew scheduler can toggle; each adds a required entry. */
+export type ConditionId =
+  | "HOTEL_NEEDED"
+  | "DEADHEAD"
+  | "TRIP_REMOVED"
+  | "SICK_CALL_FOLLOW"
+  | "INTL_SEGMENT"
+  | "CREW_REPLACED";
+
+export const CONDITION_OPTIONS: {
+  id: ConditionId;
+  label: string;
+  hint: string;
+  code: string;
+  value: string;
+  tone: "normal" | "warn";
+}[] = [
+  {
+    id: "HOTEL_NEEDED",
+    label: "Hotel / rest facility required",
+    hint: "Crew member cannot commute home before rest.",
+    code: "HTL-REQ",
+    value: "BOOK HOTEL",
+    tone: "normal",
+  },
+  {
+    id: "DEADHEAD",
+    label: "Deadhead back to base",
+    hint: "Positioning segment required after the fatigue call.",
+    code: "DH-BASE",
+    value: "ADD DH SEGMENT",
+    tone: "normal",
+  },
+  {
+    id: "TRIP_REMOVED",
+    label: "Remaining trip removed",
+    hint: "Balance of the sequence is pulled from the line.",
+    code: "TRP-RMV",
+    value: "REMOVE REMAINDER",
+    tone: "normal",
+  },
+  {
+    id: "SICK_CALL_FOLLOW",
+    label: "Converted / follows a sick call",
+    hint: "Fatigue call linked to an existing sick event.",
+    code: "SK-LINK",
+    value: "LINK SICK EVENT",
+    tone: "warn",
+  },
+  {
+    id: "INTL_SEGMENT",
+    label: "International segment involved",
+    hint: "Augmented / international rules apply.",
+    code: "INTL-FLG",
+    value: "INTL REVIEW",
+    tone: "normal",
+  },
+  {
+    id: "CREW_REPLACED",
+    label: "Crew replacement assigned",
+    hint: "A reserve was assigned to cover the open position.",
+    code: "CRW-RPL",
+    value: "ASSIGN COVER",
+    tone: "normal",
+  },
+];
+
 export interface FatigueInput {
   bidStatus: BidStatus;
   /** hhmm */
@@ -25,7 +92,10 @@ export interface FatigueInput {
   /** hhmm */
   backForDutyTime: string;
   femCompleted: boolean;
+  /** Toggled conditions that add their own required entries. */
+  conditions?: ConditionId[];
 }
+
 
 export interface EntryLine {
   code: string;
