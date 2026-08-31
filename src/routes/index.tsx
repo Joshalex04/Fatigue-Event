@@ -174,6 +174,12 @@ function Index() {
   };
 
   const save = () => {
+    if (rejoinSequence === null) {
+      alert(
+        "Please answer whether the pilot can rejoin the next sequence before saving.",
+      );
+      return;
+    }
     const record: SavedEvent = {
       id: `${Date.now()}`,
       savedAt: new Date().toISOString(),
