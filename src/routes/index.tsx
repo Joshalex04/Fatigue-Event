@@ -80,10 +80,10 @@ function Index() {
     () =>
       calculateFatigue({
         bidStatus,
-        timeOfFatigue,
-        signInTime,
+        timeOfFatigue: timeOfFatigue.replace(/\D/g, ""),
+        signInTime: signInTime.replace(/\D/g, ""),
         backForDutyDate: backForDutyDate.replace(/\D/g, ""),
-        backForDutyTime,
+        backForDutyTime: backForDutyTime.replace(/\D/g, ""),
         femCompleted,
       }),
     [bidStatus, timeOfFatigue, signInTime, backForDutyDate, backForDutyTime, femCompleted],
@@ -91,8 +91,8 @@ function Index() {
 
   // Whether the fatigue call happened before or after the sign-in time.
   const fatigueRelative = useMemo(() => {
-    const si = parseHhmm(signInTime);
-    const tf = parseHhmm(timeOfFatigue);
+    const si = parseHhmm(signInTime.replace(/\D/g, ""));
+    const tf = parseHhmm(timeOfFatigue.replace(/\D/g, ""));
     if (si === null || tf === null) return null;
     return tf < si ? "Before Sign in" : "After Sign in";
   }, [signInTime, timeOfFatigue]);
