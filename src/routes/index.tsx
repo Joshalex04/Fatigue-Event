@@ -252,7 +252,7 @@ function Index() {
                         selected={parseDdmm(backForDutyDate)}
                         onSelect={(date) => {
                           if (!date) return;
-                          setBackForDutyDate(format(date, "ddMM"));
+                          setBackForDutyDate(format(date, "dd/MM"));
                           setCalendarOpen(false);
                         }}
                         initialFocus
