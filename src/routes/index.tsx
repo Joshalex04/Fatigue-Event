@@ -192,7 +192,7 @@ function Index() {
                     Time of Fatigue
                   </label>
                   <div className={fieldWrap}>
-                    <span className="font-mono text-xs text-primary/70">T+</span>
+                    <span className="font-mono text-xs text-primary/70">FTG</span>
                     <input
                       id="fatigue"
                       inputMode="numeric"
