@@ -227,6 +227,7 @@ function Index() {
     setBackForDutyTime("");
     setFemCompleted(false);
     setConditions([]);
+    setRejoinSequence(null);
     setCopied(false);
     setJustSaved(false);
   };
