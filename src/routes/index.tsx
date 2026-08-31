@@ -332,13 +332,7 @@ function Index() {
                 <span className="font-mono text-[11px] text-muted-foreground">02 / 02</span>
               </div>
               <div className="rounded-xl bg-field/60 p-4 ring-1 ring-border">
-                <p className="font-mono text-[11px] tracking-[0.15em] text-primary uppercase">
-                  Matched Scenario
-                </p>
-                <p className="mt-1 max-w-[30ch] font-mono text-2xl font-semibold tracking-tight text-balance">
-                  {result.scenarioId} · {result.scenarioTitle}
-                </p>
-                <div className="mt-4 grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <div className="rounded-lg bg-secondary/30 p-3 ring-1 ring-border">
                     <p className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
                       Duty Time
