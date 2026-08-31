@@ -254,7 +254,7 @@ function Index() {
           <section className="rounded-2xl bg-panel/40 p-5 ring-1 ring-border backdrop-blur-xl sm:p-6 lg:col-span-7">
             <div className="mb-5 flex items-center justify-between">
               <p className="font-mono text-[11px] tracking-[0.2em] text-muted-foreground uppercase">
-                Checklist · Inputs
+                Inputs
               </p>
               <span className="font-mono text-[11px] text-muted-foreground">01 / 02</span>
             </div>
