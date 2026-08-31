@@ -564,20 +564,33 @@ function Index() {
                     >
                       {fatigueRelative}
                     </span>
-                    <label className="ml-2 flex cursor-pointer items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={rejoinSequence}
-                        onChange={(e) => setRejoinSequence(e.target.checked)}
-                        className="size-4 accent-primary"
-                      />
+                    <div className="ml-2 flex items-center gap-2">
                       <span className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
                         Can Rejoin Next Sequence?
                       </span>
-                      <span className="font-mono text-sm font-semibold text-foreground">
-                        {rejoinSequence ? "YES" : "NO"}
-                      </span>
-                    </label>
+                      <button
+                        type="button"
+                        onClick={() => setRejoinSequence(true)}
+                        className={
+                          rejoinSequence === true
+                            ? "rounded-md bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground ring-1 ring-primary/50"
+                            : "rounded-md bg-secondary/40 px-3 py-1 text-xs font-semibold text-muted-foreground ring-1 ring-border transition-transform hover:-translate-y-px"
+                        }
+                      >
+                        YES
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRejoinSequence(false)}
+                        className={
+                          rejoinSequence === false
+                            ? "rounded-md bg-warning px-3 py-1 text-xs font-semibold text-warning-foreground ring-1 ring-warning/50"
+                            : "rounded-md bg-secondary/40 px-3 py-1 text-xs font-semibold text-muted-foreground ring-1 ring-border transition-transform hover:-translate-y-px"
+                        }
+                      >
+                        NO
+                      </button>
+                    </div>
                   </div>
                 ) : null}
               </div>
