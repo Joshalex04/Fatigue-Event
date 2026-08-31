@@ -307,26 +307,6 @@ function Index() {
               </div>
 
               <div>
-                <span className={labelCls}>Scheduler</span>
-                <div className={`${fieldWrap} sm:max-w-xs`}>
-                  <input
-                    aria-label="Scheduler name"
-                    className={fieldInput}
-                    placeholder="Scheduler name"
-                    value={schedulerName}
-                    onChange={(e) => {
-                      setSchedulerName(e.target.value);
-                      try {
-                        localStorage.setItem("fatigue-scheduler-name", e.target.value);
-                      } catch {
-                        /* ignore */
-                      }
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div>
                 <span className={labelCls}>Event Date</span>
                 <div className={`${fieldWrap} sm:max-w-xs`}>
                   <span className="font-mono text-xs text-primary/70">Date</span>
