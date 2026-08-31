@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Trash2 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
@@ -66,15 +66,55 @@ function parseDdmm(ddmm: string): Date | undefined {
   return new Date(now.getFullYear(), month, day);
 }
 
+interface SavedEvent {
+  id: string;
+  savedAt: string;
+  bidStatus: BidStatus;
+  eventDate: string;
+  timeOfFatigue: string;
+  signInTime: string;
+  backForDutyDate: string;
+  backForDutyTime: string;
+  femCompleted: boolean;
+  payHours: string;
+  eventNumber: string;
+  status: string;
+  entries: string;
+}
+
+const STORAGE_KEY = "fatigue-events-v1";
+
 function Index() {
   const [bidStatus, setBidStatus] = useState<BidStatus>("RSV_PR_OG");
+  const [eventDate, setEventDate] = useState(() => format(new Date(), "dd/MM"));
   const [timeOfFatigue, setTimeOfFatigue] = useState("2340");
   const [signInTime, setSignInTime] = useState("2215");
   const [backForDutyDate, setBackForDutyDate] = useState("05/12");
   const [backForDutyTime, setBackForDutyTime] = useState("0730");
   const [femCompleted, setFemCompleted] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [eventCalendarOpen, setEventCalendarOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [saved, setSaved] = useState<SavedEvent[]>([]);
+  const [justSaved, setJustSaved] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) setSaved(JSON.parse(raw) as SavedEvent[]);
+    } catch {
+      /* ignore corrupt storage */
+    }
+  }, []);
+
+  const persist = (next: SavedEvent[]) => {
+    setSaved(next);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      /* ignore quota errors */
+    }
+  };
 
   const result = useMemo(
     () =>
@@ -104,6 +144,47 @@ function Index() {
     setCopied(true);
     setTimeout(() => setCopied(false), 1600);
   };
+
+  const save = () => {
+    const record: SavedEvent = {
+      id: `${Date.now()}`,
+      savedAt: new Date().toISOString(),
+      bidStatus,
+      eventDate,
+      timeOfFatigue,
+      signInTime,
+      backForDutyDate,
+      backForDutyTime,
+      femCompleted,
+      payHours: result.payHours,
+      eventNumber: result.eventNumber,
+      status: result.status,
+      entries: entriesToText(result),
+    };
+    persist([record, ...saved].slice(0, 100));
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 1600);
+  };
+
+  const restore = (record: SavedEvent) => {
+    setBidStatus(record.bidStatus);
+    setEventDate(record.eventDate);
+    setTimeOfFatigue(record.timeOfFatigue);
+    setSignInTime(record.signInTime);
+    setBackForDutyDate(record.backForDutyDate);
+    setBackForDutyTime(record.backForDutyTime);
+    setFemCompleted(record.femCompleted);
+  };
+
+  const remove = (id: string) => persist(saved.filter((r) => r.id !== id));
+
+  const statusTone = (status: string) =>
+    status === "CLEAR"
+      ? "text-primary"
+      : status === "HOLD"
+        ? "text-warning"
+        : "text-destructive";
+
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-background font-sans text-foreground antialiased">
@@ -181,6 +262,47 @@ function Index() {
                   })}
                 </div>
               </div>
+
+              <div>
+                <span className={labelCls}>Event Date (Fatigue call / Sign-in)</span>
+                <div className={`${fieldWrap} sm:max-w-xs`}>
+                  <span className="font-mono text-xs text-primary/70">Date</span>
+                  <input
+                    aria-label="Event date"
+                    inputMode="numeric"
+                    className={fieldInput}
+                    value={eventDate}
+                    onChange={(e) => setEventDate(formatDdMmSlash(e.target.value))}
+                  />
+                  <span className="font-mono text-xs text-muted-foreground">dd/mm</span>
+                  <span className="h-4 w-px bg-border" />
+                  <Popover open={eventCalendarOpen} onOpenChange={setEventCalendarOpen}>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        aria-label="Pick event date from calendar"
+                        className="grid size-7 shrink-0 place-items-center rounded-md text-primary transition-colors hover:bg-primary/10"
+                      >
+                        <CalendarIcon className="size-4" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="end">
+                      <Calendar
+                        mode="single"
+                        selected={parseDdmm(eventDate)}
+                        onSelect={(date) => {
+                          if (!date) return;
+                          setEventDate(format(date, "dd/MM"));
+                          setEventCalendarOpen(false);
+                        }}
+                        initialFocus
+                        className="p-3 pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
@@ -389,15 +511,25 @@ function Index() {
                 <p className="font-mono text-[11px] tracking-[0.2em] text-muted-foreground uppercase">
                   Required Entries
                 </p>
-                <button
-                  type="button"
-                  onClick={copy}
-                  disabled={result.entries.length === 0}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground ring-1 ring-primary/50 transition-transform hover:-translate-y-px disabled:opacity-40"
-                >
-                  <span className="font-mono text-xs">{copied ? "COPIED" : "COPY"}</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={save}
+                    className="inline-flex items-center gap-1.5 rounded-md bg-secondary/40 px-3 py-1.5 text-sm font-semibold text-foreground ring-1 ring-border transition-transform hover:-translate-y-px"
+                  >
+                    <span className="font-mono text-xs">{justSaved ? "SAVED" : "SAVE"}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={copy}
+                    disabled={result.entries.length === 0}
+                    className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground ring-1 ring-primary/50 transition-transform hover:-translate-y-px disabled:opacity-40"
+                  >
+                    <span className="font-mono text-xs">{copied ? "COPIED" : "COPY"}</span>
+                  </button>
+                </div>
               </div>
+
               <div className="divide-y divide-border rounded-xl bg-field/60 font-mono text-sm ring-1 ring-border">
                 {result.entries.length === 0 ? (
                   <p className="px-3.5 py-6 text-center text-xs text-muted-foreground">
@@ -435,6 +567,67 @@ function Index() {
           </section>
         </div>
 
+
+        <section className="mt-5 rounded-2xl bg-panel/40 p-5 ring-1 ring-border backdrop-blur-xl sm:p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <p className="font-mono text-[11px] tracking-[0.2em] text-muted-foreground uppercase">
+              Saved Events · {saved.length}
+            </p>
+            {saved.length > 0 ? (
+              <button
+                type="button"
+                onClick={() => persist([])}
+                className="font-mono text-[11px] text-muted-foreground uppercase hover:text-destructive"
+              >
+                Clear all
+              </button>
+            ) : null}
+          </div>
+          {saved.length === 0 ? (
+            <p className="rounded-xl bg-field/60 px-3.5 py-6 text-center text-xs text-muted-foreground ring-1 ring-border">
+              No saved events yet — press SAVE to store the current calculation.
+            </p>
+          ) : (
+            <div className="divide-y divide-border overflow-hidden rounded-xl bg-field/60 font-mono text-sm ring-1 ring-border">
+              {saved.map((record) => (
+                <div key={record.id} className="flex flex-wrap items-center gap-3 px-3.5 py-3">
+                  <span className="text-primary">{record.eventDate}</span>
+                  <span className="text-muted-foreground">
+                    SI {record.signInTime} · FTG {record.timeOfFatigue}
+                  </span>
+                  <span className="text-muted-foreground">
+                    BFD {record.backForDutyDate} {record.backForDutyTime}
+                  </span>
+                  <span className="text-xs text-muted-foreground uppercase">
+                    {BID_STATUS_OPTIONS.find((o) => o.value === record.bidStatus)?.label}
+                  </span>
+                  <span className="ml-auto flex items-center gap-3">
+                    <span className="text-foreground">{record.payHours}</span>
+                    <span className={`text-xs font-semibold ${statusTone(record.status)}`}>
+                      {record.status}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => restore(record)}
+                      className="rounded-md bg-secondary/40 px-2.5 py-1 text-[11px] uppercase ring-1 ring-border hover:-translate-y-px"
+                    >
+                      Load
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Delete saved event"
+                      onClick={() => remove(record.id)}
+                      className="grid size-7 place-items-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
         <footer className="mt-6 flex flex-wrap items-center justify-between gap-2 font-mono text-[11px] text-muted-foreground">
           <span className="tracking-[0.2em] uppercase">Internal tool · Crew Scheduling</span>
           <span>Rules v0.9 · placeholder thresholds</span>
@@ -443,3 +636,4 @@ function Index() {
     </div>
   );
 }
+
