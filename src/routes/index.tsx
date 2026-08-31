@@ -85,6 +85,7 @@ interface SavedEvent {
   eventNumber: string;
   status: string;
   entries: string;
+  rejoinSequence: boolean | null;
 }
 
 const STORAGE_KEY = "fatigue-events-v1";
