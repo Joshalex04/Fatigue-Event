@@ -511,15 +511,25 @@ function Index() {
                 <p className="font-mono text-[11px] tracking-[0.2em] text-muted-foreground uppercase">
                   Required Entries
                 </p>
-                <button
-                  type="button"
-                  onClick={copy}
-                  disabled={result.entries.length === 0}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground ring-1 ring-primary/50 transition-transform hover:-translate-y-px disabled:opacity-40"
-                >
-                  <span className="font-mono text-xs">{copied ? "COPIED" : "COPY"}</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={save}
+                    className="inline-flex items-center gap-1.5 rounded-md bg-secondary/40 px-3 py-1.5 text-sm font-semibold text-foreground ring-1 ring-border transition-transform hover:-translate-y-px"
+                  >
+                    <span className="font-mono text-xs">{justSaved ? "SAVED" : "SAVE"}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={copy}
+                    disabled={result.entries.length === 0}
+                    className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground ring-1 ring-primary/50 transition-transform hover:-translate-y-px disabled:opacity-40"
+                  >
+                    <span className="font-mono text-xs">{copied ? "COPIED" : "COPY"}</span>
+                  </button>
+                </div>
               </div>
+
               <div className="divide-y divide-border rounded-xl bg-field/60 font-mono text-sm ring-1 ring-border">
                 {result.entries.length === 0 ? (
                   <p className="px-3.5 py-6 text-center text-xs text-muted-foreground">
