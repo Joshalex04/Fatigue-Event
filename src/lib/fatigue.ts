@@ -201,7 +201,7 @@ export function calculateFatigue(input: FatigueInput): FatigueResult {
       eventNumber: "--",
       payHours: "--",
       status: "BLOCKED",
-      notes: "Complete the Fatigue Event Management report, then re-run the calculation.",
+      notes: "Complete the Fatigue Event Management report, then re-run.",
       entries: [{ code: "FEM-REQ", value: "PENDING", tone: "warn" }],
     };
   }
