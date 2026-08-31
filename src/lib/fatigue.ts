@@ -152,7 +152,7 @@ export function calculateFatigue(input: FatigueInput): FatigueResult {
   }
 
   const elapsed = dutyElapsed(signIn, fatigue);
-  const payMinutes = rule.pay(elapsed);
+  const payMinutes = elapsed;
   const restAvailable = dutyElapsed(fatigue, backTime);
   const restShort = restAvailable < rule.restFloor;
 
