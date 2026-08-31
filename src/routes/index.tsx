@@ -254,7 +254,7 @@ function Index() {
           </div>
           <div className="flex items-center gap-2 font-mono text-xs">
             <span className="hidden items-center gap-2 rounded-md bg-secondary/40 px-3 py-1.5 text-muted-foreground ring-1 ring-border sm:inline-flex">
-              Crew Ops Desk
+              {schedulerName.trim() ? schedulerName.trim() : "Crew Ops Desk"}
             </span>
           </div>
         </header>
