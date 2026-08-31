@@ -219,7 +219,7 @@ function Index() {
                   />
                   <span className="font-mono text-xs text-muted-foreground">hhmm</span>
                   <span className="h-4 w-px bg-border" />
-                  <Popover>
+                  <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                     <PopoverTrigger asChild>
                       <button
                         type="button"
@@ -233,7 +233,11 @@ function Index() {
                       <Calendar
                         mode="single"
                         selected={parseDdmm(backForDutyDate)}
-                        onSelect={(date) => date && setBackForDutyDate(format(date, "ddMM"))}
+                        onSelect={(date) => {
+                          if (!date) return;
+                          setBackForDutyDate(format(date, "ddMM"));
+                          setCalendarOpen(false);
+                        }}
                         initialFocus
                         className="p-3 pointer-events-auto"
                       />
