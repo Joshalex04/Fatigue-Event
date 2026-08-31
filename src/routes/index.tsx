@@ -42,6 +42,14 @@ function digits(value: string, max: number) {
   return value.replace(/\D/g, "").slice(0, max);
 }
 
+function parseDdmm(ddmm: string): Date | undefined {
+  if (!/^(0[1-9]|[12]\d|3[01])(0[1-9]|1[0-2])$/.test(ddmm)) return undefined;
+  const day = Number(ddmm.slice(0, 2));
+  const month = Number(ddmm.slice(2)) - 1;
+  const now = new Date();
+  return new Date(now.getFullYear(), month, day);
+}
+
 function Index() {
   const [bidStatus, setBidStatus] = useState<BidStatus>("RSV_PR_OG");
   const [timeOfFatigue, setTimeOfFatigue] = useState("2340");
