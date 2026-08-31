@@ -143,10 +143,6 @@ function Index() {
             </div>
           </div>
           <div className="flex items-center gap-2 font-mono text-xs">
-            <span className="inline-flex items-center gap-2 rounded-md bg-secondary/40 px-3 py-1.5 ring-1 ring-border">
-              <span className="size-1.5 rounded-full bg-primary" />
-              {result.scenarioId}
-            </span>
             <span className="hidden items-center gap-2 rounded-md bg-secondary/40 px-3 py-1.5 text-muted-foreground ring-1 ring-border sm:inline-flex">
               Crew Ops Desk
             </span>
@@ -332,13 +328,7 @@ function Index() {
                 <span className="font-mono text-[11px] text-muted-foreground">02 / 02</span>
               </div>
               <div className="rounded-xl bg-field/60 p-4 ring-1 ring-border">
-                <p className="font-mono text-[11px] tracking-[0.15em] text-primary uppercase">
-                  Matched Scenario
-                </p>
-                <p className="mt-1 max-w-[30ch] font-mono text-2xl font-semibold tracking-tight text-balance">
-                  {result.scenarioId} · {result.scenarioTitle}
-                </p>
-                <div className="mt-4 grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <div className="rounded-lg bg-secondary/30 p-3 ring-1 ring-border">
                     <p className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
                       Duty Time
