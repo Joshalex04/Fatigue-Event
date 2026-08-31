@@ -223,9 +223,9 @@ function Index() {
                     inputMode="numeric"
                     className={fieldInput}
                     value={backForDutyDate}
-                    onChange={(e) => setBackForDutyDate(digits(e.target.value, 4))}
+                    onChange={(e) => setBackForDutyDate(formatDdMmSlash(e.target.value))}
                   />
-                  <span className="font-mono text-xs text-muted-foreground">ddmm</span>
+                  <span className="font-mono text-xs text-muted-foreground">dd/mm</span>
                   <span className="h-4 w-px bg-border" />
                   <input
                     aria-label="Back for duty time"
