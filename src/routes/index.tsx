@@ -6,10 +6,12 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   BID_STATUS_OPTIONS,
+  CONDITION_OPTIONS,
   calculateFatigue,
   entriesToText,
   parseHhmm,
   type BidStatus,
+  type ConditionId,
 } from "@/lib/fatigue";
 
 export const Route = createFileRoute("/")({
@@ -92,11 +94,17 @@ function Index() {
   const [backForDutyDate, setBackForDutyDate] = useState("05/12");
   const [backForDutyTime, setBackForDutyTime] = useState("0730");
   const [femCompleted, setFemCompleted] = useState(false);
+  const [conditions, setConditions] = useState<ConditionId[]>([]);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [eventCalendarOpen, setEventCalendarOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState<SavedEvent[]>([]);
   const [justSaved, setJustSaved] = useState(false);
+
+  const toggleCondition = (id: ConditionId) =>
+    setConditions((prev) =>
+      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id],
+    );
 
   useEffect(() => {
     try {
