@@ -72,7 +72,7 @@ function parseDdmm(ddmm: string): Date | undefined {
 interface SavedEvent {
   id: string;
   savedAt: string;
-  schedulerName?: string;
+  schedulerName?: string | undefined;
   bidStatus: BidStatus;
   eventDate: string;
   timeOfFatigue: string;
