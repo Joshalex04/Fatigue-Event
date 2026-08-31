@@ -465,7 +465,7 @@ function Index() {
             >
               <div className="mb-4 flex items-center justify-between">
                 <p className="font-mono text-[11px] tracking-[0.2em] text-muted-foreground uppercase">
-                  Steps · Checklist
+                  Results
                 </p>
                 <span className="font-mono text-[11px] text-muted-foreground">02 / 02</span>
               </div>
