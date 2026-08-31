@@ -214,9 +214,9 @@ function Index() {
                       inputMode="numeric"
                       className={fieldInput}
                       value={signInTime}
-                      onChange={(e) => setSignInTime(digits(e.target.value, 4))}
+                      onChange={(e) => setSignInTime(formatHhMmColon(e.target.value))}
                     />
-                    <span className="font-mono text-xs text-muted-foreground">hhmm</span>
+                    <span className="font-mono text-xs text-muted-foreground">hh:mm</span>
                   </div>
                 </div>
               </div>
