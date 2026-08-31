@@ -72,6 +72,7 @@ function parseDdmm(ddmm: string): Date | undefined {
 interface SavedEvent {
   id: string;
   savedAt: string;
+  schedulerName?: string;
   bidStatus: BidStatus;
   eventDate: string;
   timeOfFatigue: string;
@@ -90,6 +91,13 @@ const STORAGE_KEY = "fatigue-events-v1";
 
 function Index() {
   const [bidStatus, setBidStatus] = useState<BidStatus>("RSV_PR_OG");
+  const [schedulerName, setSchedulerName] = useState(() => {
+    try {
+      return localStorage.getItem("fatigue-scheduler-name") ?? "";
+    } catch {
+      return "";
+    }
+  });
   const [eventDate, setEventDate] = useState(() => format(new Date(), "dd/MM"));
   const [timeOfFatigue, setTimeOfFatigue] = useState("2340");
   const [signInTime, setSignInTime] = useState("2215");
@@ -168,6 +176,7 @@ function Index() {
     const record: SavedEvent = {
       id: `${Date.now()}`,
       savedAt: new Date().toISOString(),
+      schedulerName: schedulerName.trim() || undefined,
       bidStatus,
       eventDate,
       timeOfFatigue,
@@ -280,6 +289,26 @@ function Index() {
                       </button>
                     );
                   })}
+                </div>
+              </div>
+
+              <div>
+                <span className={labelCls}>Scheduler</span>
+                <div className={`${fieldWrap} sm:max-w-xs`}>
+                  <input
+                    aria-label="Scheduler name"
+                    className={fieldInput}
+                    placeholder="Scheduler name"
+                    value={schedulerName}
+                    onChange={(e) => {
+                      setSchedulerName(e.target.value);
+                      try {
+                        localStorage.setItem("fatigue-scheduler-name", e.target.value);
+                      } catch {
+                        /* ignore */
+                      }
+                    }}
+                  />
                 </div>
               </div>
 
@@ -663,6 +692,11 @@ function Index() {
               {saved.map((record) => (
                 <div key={record.id} className="flex flex-wrap items-center gap-3 px-3.5 py-3">
                   <span className="text-primary">{record.eventDate}</span>
+                  {record.schedulerName ? (
+                    <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[11px] text-primary ring-1 ring-primary/30">
+                      {record.schedulerName}
+                    </span>
+                  ) : null}
                   <span className="text-muted-foreground">
                     SI {record.signInTime} · FTG {record.timeOfFatigue}
                   </span>
