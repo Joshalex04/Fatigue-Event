@@ -63,7 +63,7 @@ function Index() {
   const [bidStatus, setBidStatus] = useState<BidStatus>("RSV_PR_OG");
   const [timeOfFatigue, setTimeOfFatigue] = useState("2340");
   const [signInTime, setSignInTime] = useState("2215");
-  const [backForDutyDate, setBackForDutyDate] = useState("0512");
+  const [backForDutyDate, setBackForDutyDate] = useState("05/12");
   const [backForDutyTime, setBackForDutyTime] = useState("0730");
   const [femCompleted, setFemCompleted] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
