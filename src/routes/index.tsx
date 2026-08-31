@@ -208,6 +208,19 @@ function Index() {
 
   const remove = (id: string) => persist(saved.filter((r) => r.id !== id));
 
+  const clearForm = () => {
+    setBidStatus("RSV_PR_OG");
+    setEventDate(format(new Date(), "dd/MM"));
+    setTimeOfFatigue("");
+    setSignInTime("");
+    setBackForDutyDate("");
+    setBackForDutyTime("");
+    setFemCompleted(false);
+    setConditions([]);
+    setCopied(false);
+    setJustSaved(false);
+  };
+
   const statusTone = (status: string) =>
     status === "CLEAR"
       ? "text-primary"
@@ -620,6 +633,13 @@ function Index() {
                     className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground ring-1 ring-primary/50 transition-transform hover:-translate-y-px disabled:opacity-40"
                   >
                     <span className="font-mono text-xs">{copied ? "COPIED" : "COPY"}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={clearForm}
+                    className="inline-flex items-center gap-1.5 rounded-md bg-secondary/40 px-3 py-1.5 text-sm font-semibold text-muted-foreground ring-1 ring-border transition-transform hover:-translate-y-px"
+                  >
+                    <span className="font-mono text-xs">CLEAR</span>
                   </button>
                 </div>
               </div>
