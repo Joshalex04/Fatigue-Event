@@ -43,10 +43,18 @@ function digits(value: string, max: number) {
   return value.replace(/\D/g, "").slice(0, max);
 }
 
+/** Format up-to-4 raw digits as dd/mm for display. */
+function formatDdMmSlash(value: string) {
+  const d = digits(value, 4);
+  if (d.length <= 2) return d;
+  return `${d.slice(0, 2)}/${d.slice(2)}`;
+}
+
 function parseDdmm(ddmm: string): Date | undefined {
-  if (!/^(0[1-9]|[12]\d|3[01])(0[1-9]|1[0-2])$/.test(ddmm)) return undefined;
-  const day = Number(ddmm.slice(0, 2));
-  const month = Number(ddmm.slice(2)) - 1;
+  const raw = ddmm.replace(/\D/g, "");
+  if (!/^(0[1-9]|[12]\d|3[01])(0[1-9]|1[0-2])$/.test(raw)) return undefined;
+  const day = Number(raw.slice(0, 2));
+  const month = Number(raw.slice(2)) - 1;
   const now = new Date();
   return new Date(now.getFullYear(), month, day);
 }
