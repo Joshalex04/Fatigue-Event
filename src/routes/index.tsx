@@ -621,8 +621,8 @@ function Index() {
         </section>
 
         <footer className="mt-6 flex flex-wrap items-center justify-between gap-2 font-mono text-[11px] text-muted-foreground">
-          <span className="tracking-[0.2em] uppercase">Internal tool · Crew Scheduling</span>
-          <span>Rules v0.9 · placeholder thresholds</span>
+          <span className="tracking-[0.2em] uppercase">Crew Scheduling</span>
+          <span className="max-w-[60ch] text-balance">Unofficial employee-developed tool. Not authorized or endorsed by American Airlines. Use at your own risk.</span>
         </footer>
       </div>
     </div>
