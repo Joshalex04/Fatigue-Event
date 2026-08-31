@@ -57,6 +57,7 @@ function Index() {
   const [backForDutyDate, setBackForDutyDate] = useState("0512");
   const [backForDutyTime, setBackForDutyTime] = useState("0730");
   const [femCompleted, setFemCompleted] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const result = useMemo(
