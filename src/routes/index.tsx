@@ -264,7 +264,7 @@ function Index() {
               </div>
 
               <div>
-                <span className={labelCls}>Event Date (Fatigue call / Sign-in)</span>
+                <span className={labelCls}>Event Date</span>
                 <div className={`${fieldWrap} sm:max-w-xs`}>
                   <span className="font-mono text-xs text-primary/70">Date</span>
                   <input
