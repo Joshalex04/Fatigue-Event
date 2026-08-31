@@ -194,14 +194,14 @@ export function calculateFatigue(input: FatigueInput): FatigueResult {
     return {
       blocked: true,
       blockReason:
-        "FEM not completed. This must be completed before the fatigue event can be processed. Calculation is blocked.",
+        "FEM not completed. This must be completed before the fatigue event can be processed.",
       errors,
       scenarioId: rule.id,
       scenarioTitle: rule.title,
       eventNumber: "--",
       payHours: "--",
       status: "BLOCKED",
-      notes: "Complete the Fatigue Event Management report, then re-run the calculation.",
+      notes: "Complete the Fatigue Event Management report, then re-run.",
       entries: [{ code: "FEM-REQ", value: "PENDING", tone: "warn" }],
     };
   }
