@@ -75,7 +75,7 @@ function Index() {
         bidStatus,
         timeOfFatigue,
         signInTime,
-        backForDutyDate,
+        backForDutyDate: backForDutyDate.replace(/\D/g, ""),
         backForDutyTime,
         femCompleted,
       }),
