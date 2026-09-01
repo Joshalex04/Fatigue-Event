@@ -56,17 +56,6 @@ export function SignInScreen({
           onChange={(e) => setName(e.target.value)}
         />
 
-        <label className="mt-4 block font-mono text-[11px] tracking-[0.15em] text-muted-foreground uppercase">
-          Phone Number · optional
-        </label>
-        <input
-          className="mt-2 w-full rounded-lg bg-field px-3 py-2.5 font-mono text-base outline-none ring-1 ring-border focus:ring-2 focus:ring-primary/40"
-          placeholder="(305) 555-1234"
-          inputMode="tel"
-          autoComplete="tel"
-          value={formatPhone(phone)}
-          onChange={(e) => setPhone(normalizePhone(e.target.value))}
-        />
 
         {error ? (
           <p className="mt-3 font-mono text-xs text-destructive">{error}</p>
