@@ -231,7 +231,8 @@ function Index() {
   const recalcKey = `${bidStatus}${timeOfFatigue}${signInTime}${backForDutyDate}${backForDutyTime}${femCompleted}${conditions.join(",")}`;
 
   const copy = async () => {
-    await navigator.clipboard.writeText(planToText(plan));
+    // Copy only the entry codes, one per line (e.g. HE/5555/01/25/MI).
+    await navigator.clipboard.writeText(plan.entries.map((e) => e.code).join("\n"));
     setCopied(true);
     setTimeout(() => setCopied(false), 1600);
   };
@@ -301,7 +302,7 @@ function Index() {
     setAirportBase("MIA");
     setEmployeeNumber("");
     setSequenceNumber("");
-    setSequenceDate("");
+    setSequenceDate(format(new Date(), "dd/MM"));
     setTimeOfFatigue("");
     setSignInTime("");
     setBackForDutyDate("");
