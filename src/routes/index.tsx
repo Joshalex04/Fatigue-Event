@@ -616,7 +616,7 @@ function Index() {
                 </div>
 
                 <div className="mt-4">
-                  <span className={labelCls}>Recovery Obligation Available</span>
+                  <span className={labelCls}>Was Recovery Obligation Available?</span>
                   <div className="grid grid-cols-2 gap-2 sm:max-w-xs">
                     <button
                       type="button"
