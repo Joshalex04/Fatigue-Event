@@ -5,6 +5,9 @@ import { format } from "date-fns";
 import { CalendarIcon, Trash2 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useSession } from "@/lib/session";
+import { SignInScreen } from "@/components/sign-in-screen";
+import { SuggestionBox } from "@/components/suggestion-box";
 import {
   BID_STATUS_OPTIONS,
   CSS_CALENDAR_URL,
@@ -105,6 +108,7 @@ interface SavedEvent {
 const STORAGE_KEY = "fatigue-events-v1";
 
 function Index() {
+  const { hydrated, user, signIn, signOut } = useSession();
   const [bidStatus, setBidStatus] = useState<BidStatus>("RSV_PR_OG");
   const [schedulerName, setSchedulerName] = useState(() => {
     try {
@@ -339,6 +343,25 @@ function Index() {
         : "text-destructive";
 
 
+  if (!hydrated) return null;
+  if (!user) {
+    return (
+      <SignInScreen
+        onSignIn={(name, phone) => {
+          signIn(name, phone);
+          if (!schedulerName.trim()) {
+            setSchedulerName(name.trim());
+            try {
+              localStorage.setItem("fatigue-scheduler-name", name.trim());
+            } catch {
+              /* ignore */
+            }
+          }
+        }}
+      />
+    );
+  }
+
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-background font-sans text-foreground antialiased">
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
@@ -407,6 +430,13 @@ function Index() {
                 }}
               />
             </div>
+            <button
+              type="button"
+              onClick={signOut}
+              className="rounded-md bg-secondary/40 px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase ring-1 ring-border transition-transform hover:-translate-y-px"
+            >
+              Sign out
+            </button>
           </div>
         </header>
 
@@ -969,7 +999,8 @@ function Index() {
         </div>
 
 
-        <section className="mt-5 rounded-2xl bg-panel/40 p-5 ring-1 ring-border backdrop-blur-xl sm:p-6">
+        <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-12">
+        <section className="rounded-2xl bg-panel/40 p-5 ring-1 ring-border backdrop-blur-xl sm:p-6 lg:col-span-8">
           <div className="mb-4 flex items-center justify-between">
             <p className="font-mono text-[11px] tracking-[0.2em] text-muted-foreground uppercase">
               Saved Events · {saved.length}
@@ -1033,6 +1064,10 @@ function Index() {
             </div>
           )}
         </section>
+        <div className="lg:col-span-4">
+          <SuggestionBox author={user.name} />
+        </div>
+        </div>
 
         <footer className="mt-6 flex flex-wrap items-center justify-between gap-2 font-mono text-[11px] text-muted-foreground">
           <span className="tracking-[0.2em] uppercase">Crew Scheduling</span>
