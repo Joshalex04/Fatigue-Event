@@ -22,7 +22,7 @@ export function AdminSuggestions() {
     return (
       <section className="rounded-2xl bg-panel/40 p-5 ring-1 ring-border backdrop-blur-xl sm:p-6">
         <p className="mb-3 flex items-center gap-2 font-mono text-[11px] tracking-[0.2em] text-muted-foreground uppercase">
-          <Lock className="size-3.5" /> Admin · Suggestions
+          <Lock className="size-3.5" /> Admin
         </p>
         <form
           onSubmit={(e) => {
@@ -55,7 +55,7 @@ export function AdminSuggestions() {
     <section className="rounded-2xl bg-panel/40 p-5 ring-1 ring-border backdrop-blur-xl sm:p-6">
       <div className="mb-4 flex items-center justify-between gap-3">
         <p className="font-mono text-[11px] tracking-[0.2em] text-muted-foreground uppercase">
-          Admin · Suggestions · {items.length}
+          Admin · {items.length}
         </p>
         <div className="flex items-center gap-3">
           {items.length > 0 ? (

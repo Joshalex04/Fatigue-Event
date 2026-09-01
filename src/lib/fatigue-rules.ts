@@ -111,7 +111,7 @@ export const FATIGUE_RULES: FatigueRule[] = [
     label: "Prior sign-in · cannot rejoin sequence",
     when: { priorSignIn: true, rejoinSequence: false },
     entries: ["REMOVE_SEQUENCE", "INPUT_ABSENCE"],
-    steps: [1, 3, 4],
+    steps: [1, 3],
     requires: [
       { field: "recoveryFlying", message: "Answer “Recovery Flying” to complete the steps." },
     ],

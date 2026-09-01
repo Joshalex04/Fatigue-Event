@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import fatigueLogoAsset from "@/assets/fatigue-logo.jpg.asset.json";
+import skyBgAsset from "@/assets/sky-bg.jpg.asset.json";
 import { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import { CalendarIcon, Trash2 } from "lucide-react";
@@ -366,24 +367,21 @@ function Index() {
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-background font-sans text-foreground antialiased">
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="aur absolute -top-24 -left-24 h-[520px] w-[520px] rounded-full bg-primary/20 blur-[110px]" />
         <div
-          className="aur absolute top-1/3 -right-28 h-[460px] w-[460px] rounded-full bg-accent/20 blur-[120px]"
-          style={{ animationDelay: "-6s" }}
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${skyBgAsset.url})` }}
         />
+        <div className="absolute inset-0 bg-background/80" />
         <div
-          className="aur absolute -bottom-20 left-1/3 h-[420px] w-[420px] rounded-full bg-warning/10 blur-[120px]"
-          style={{ animationDelay: "-11s" }}
-        />
-        <div
-          className="absolute inset-0 opacity-[0.35]"
+          className="absolute inset-0 opacity-[0.25]"
           style={{
             backgroundImage:
-              "linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px)",
+              "linear-gradient(rgba(255,255,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.04) 1px,transparent 1px)",
             backgroundSize: "44px 44px",
           }}
         />
       </div>
+
 
       <div className="relative mx-auto max-w-7xl px-5 py-5 sm:px-8 sm:py-7">
         <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
@@ -630,6 +628,9 @@ function Index() {
                     />
                     <span className="font-mono text-xs text-muted-foreground">HHMM</span>
                   </div>
+                  <p className="mt-1.5 font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
+                    Date = Event Date · {eventDate}
+                  </p>
                 </div>
                 <div>
                   <label className={labelCls} htmlFor="signin">
@@ -782,7 +783,7 @@ function Index() {
                       Back for Duty
                     </p>
                     <p className="font-mono text-lg font-semibold">
-                      {backForDutyDate} {backForDutyTime}
+                      {backForDutyDisplay}
                     </p>
                   </div>
                 </div>

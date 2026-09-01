@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 
 const ADMIN_KEY = "fatigue-admin-v1";
-/** Passcode that unlocks the admin suggestions panel. */
-export const ADMIN_CODE = "FTG-ADMIN";
+/** Passcode that unlocks the admin panel. */
+export const ADMIN_CODE = "MAGDALENA04";
 
 export function useAdmin() {
   const [isAdmin, setIsAdmin] = useState(false);
