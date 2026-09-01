@@ -384,6 +384,80 @@ function Index() {
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label className={labelCls} htmlFor="airport-base">
+                    Airport Base
+                  </label>
+                  <div className={fieldWrap}>
+                    <span className="font-mono text-xs text-primary/70">BASE</span>
+                    <select
+                      id="airport-base"
+                      className={`${fieldInput} appearance-none`}
+                      value={airportBase}
+                      onChange={(e) => setAirportBase(e.target.value)}
+                    >
+                      {AIRPORT_BASES.map((code) => (
+                        <option key={code} value={code} className="bg-background">
+                          {code}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className={labelCls} htmlFor="employee-number">
+                    Employee #
+                  </label>
+                  <div className={fieldWrap}>
+                    <span className="font-mono text-xs text-primary/70">EMP</span>
+                    <input
+                      id="employee-number"
+                      inputMode="numeric"
+                      placeholder="000000"
+                      className={`${fieldInput} placeholder:text-muted-foreground/50`}
+                      value={employeeNumber}
+                      onChange={(e) => setEmployeeNumber(digits(e.target.value, 8))}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label className={labelCls} htmlFor="sequence-number">
+                    Sequence Number
+                  </label>
+                  <div className={fieldWrap}>
+                    <span className="font-mono text-xs text-primary/70">SEQ</span>
+                    <input
+                      id="sequence-number"
+                      placeholder="0000"
+                      className={`${fieldInput} placeholder:text-muted-foreground/50`}
+                      value={sequenceNumber}
+                      onChange={(e) => setSequenceNumber(e.target.value.toUpperCase().slice(0, 10))}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className={labelCls} htmlFor="sequence-date">
+                    Sequence Date
+                  </label>
+                  <div className={fieldWrap}>
+                    <span className="font-mono text-xs text-primary/70">Date</span>
+                    <input
+                      id="sequence-date"
+                      inputMode="numeric"
+                      className={fieldInput}
+                      value={sequenceDate}
+                      onChange={(e) => setSequenceDate(formatDdMmSlash(e.target.value))}
+                    />
+                    <span className="font-mono text-xs text-muted-foreground">dd/mm</span>
+                  </div>
+                </div>
+              </div>
+
+
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
