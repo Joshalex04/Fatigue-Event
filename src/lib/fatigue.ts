@@ -289,22 +289,35 @@ export type EntryKey =
   | "ASSIGN_RAP"
   | "ASSIGN_SEQUENCE";
 
+/*
+ * Entry legends:
+ *  EMP#   employee number
+ *  SEQNUM sequence number
+ *  DT     sequence date (DD)
+ *  FDT    event date (DDMM)
+ *  TDT    back-for-duty date (DDMM)
+ *  STM    start time (HHMM)
+ *  FTM    time of fatigue + 1 minute (HHMM)
+ *  TTM    back-for-duty time (HHMM)
+ */
 export const ENTRY_DEFS: Record<EntryKey, { label: string; template: string }> = {
   REMOVE_SEQUENCE: { label: "Remove Sequence", template: "2G/EMP#/SEQNUM/DT/FT" },
-  INPUT_ABSENCE: { label: "Input Absence", template: "A4/EMP#/FT/DT/DT//TM/TM" },
+  INPUT_ABSENCE: { label: "Input Absence", template: "A4/EMP#/FT/FDT/TDT//FTM/TTM" },
   MODIFY_SEQUENCE: { label: "Modify Sequence", template: "HE/SEQ/DT/25/MI" },
-  MODIFY_RAP: { label: "Modify RAP", template: "HYR(V)/EMP#/SDT/EDT//STIME/ETIME" },
-  REMOVE_RAP: { label: "Remove RAP", template: "HYR(V)/EMP#/SDT/STM//R" },
-  SET_ABSENCE: { label: "Set Absence", template: "A4/EMP#/FT/DT/DT///ETM" },
-  ASSIGN_RAP: { label: "Assign RAP", template: "HYR/EMP#/DT//RAP TIME" },
-  ASSIGN_SEQUENCE: { label: "Assign Sequence", template: "HU/EMP#/SEQNUM/DT/FT" },
+  MODIFY_RAP: { label: "Modify RAP", template: "HYR(V)/EMP#/START DT/END DT//START TIME/END TIME" },
+  REMOVE_RAP: { label: "Remove RAP", template: "HYR(V)/EMP#/DATE//R" },
+  SET_ABSENCE: { label: "Set Absence", template: "A4/EMP#/FT/DT/TDT///TTM" },
+  ASSIGN_RAP: { label: "Assign RAP", template: "HYR/EMP#/DATE//RAP TIME" },
+  ASSIGN_SEQUENCE: { label: "Assign Sequence", template: "HU/EMP#/SEQ#/DATE/FT" },
 };
 
+export const CSS_CALENDAR_URL = "https://css.aa.com/cme/calendarview";
+
 export const STEP_TEXTS: Record<number, string> = {
-  1: "Go to https://css.aa.com/cme/calendarview — click on RFW.",
+  1: `Go to ${CSS_CALENDAR_URL} — click on RFW.`,
   2: "Select I'm Done.",
   3: "Click on the Fatigue Red Puck, open Sequence Look.",
-  4: "Any Recovery Flying? Answer using the buttons — Yes shows step 5, No shows step 6.",
+  4: "Any Recovery Flying? Answer Yes or No with the buttons above.",
   5: "Click on RFW, and select I am Done.",
   6: "Assign best solution: add a sequence (entry: Assign Sequence).",
   7: "Assign a RAP (entry: Assign RAP).",
