@@ -1,4 +1,6 @@
+import { matchRules, type RuleFacts } from "./fatigue-rules";
 /**
+
  * Fatigue Event calculation engine.
  *
  * All airline-specific rules live in the RULES table below so the scenario
