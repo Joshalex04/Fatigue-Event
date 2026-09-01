@@ -597,7 +597,7 @@ function Index() {
                       value={signInTime}
                       onChange={(e) => setSignInTime(digits(e.target.value, 4))}
                     />
-                    <span className="font-mono text-xs text-muted-foreground">hhmm</span>
+                    <span className="font-mono text-xs text-muted-foreground">HHMM</span>
                   </div>
                 </div>
               </div>
