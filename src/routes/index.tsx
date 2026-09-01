@@ -140,6 +140,7 @@ function Index() {
   const [justSaved, setJustSaved] = useState(false);
   const [rejoinSequence, setRejoinSequence] = useState<boolean | null>(null);
   const [rapStarted, setRapStarted] = useState<boolean | null>(null);
+  const [recoveryFlying, setRecoveryFlying] = useState<boolean | null>(null);
 
 
 
@@ -190,6 +191,37 @@ function Index() {
     if (si === null || tf === null) return null;
     return tf < si ? "Before Sign in" : "After Sign in";
   }, [signInTime, timeOfFatigue]);
+
+  const plan = useMemo(
+    () =>
+      buildEntriesPlan({
+        bidStatus,
+        priorSignIn:
+          fatigueRelative === null ? null : fatigueRelative === "Before Sign in",
+        rejoinSequence,
+        rapStarted,
+        recoveryFlying,
+        employeeNumber,
+        sequenceNumber,
+        sequenceDate: sequenceDate.replace(/\D/g, ""),
+        eventDate: eventDate.replace(/\D/g, ""),
+        timeOfFatigue: timeOfFatigue.replace(/\D/g, ""),
+        signInTime: signInTime.replace(/\D/g, ""),
+      }),
+    [
+      bidStatus,
+      fatigueRelative,
+      rejoinSequence,
+      rapStarted,
+      recoveryFlying,
+      employeeNumber,
+      sequenceNumber,
+      sequenceDate,
+      eventDate,
+      timeOfFatigue,
+      signInTime,
+    ],
+  );
 
   const recalcKey = `${bidStatus}${timeOfFatigue}${signInTime}${backForDutyDate}${backForDutyTime}${femCompleted}${conditions.join(",")}`;
 
