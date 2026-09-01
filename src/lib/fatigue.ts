@@ -447,7 +447,7 @@ export function buildEntriesPlan(input: PlanInput): EntriesPlan {
 
   if (input.rejoinSequence) {
     // All scenarios — pilot can rejoin the sequence.
-    entries = [entry("MODIFY_SEQUENCE", input), entry("SET_ABSENCE", input)];
+    entries = [entry("MODIFY_SEQUENCE", input), entry("INPUT_ABSENCE", input)];
     steps = stepsOf([1, 2]);
     if (input.bidStatus === "RSV_FLYING") {
       if (input.rapStarted === null) {
@@ -456,29 +456,23 @@ export function buildEntriesPlan(input: PlanInput): EntriesPlan {
         entries.push(entry(input.rapStarted ? "MODIFY_RAP" : "REMOVE_RAP", input));
       }
     }
-  } else if (input.bidStatus === "RSV_FLYING") {
-    // RSV Flying — cannot rejoin.
-    entries = [
-      entry("REMOVE_SEQUENCE", input),
-      entry("SET_ABSENCE", input),
-      entry("ASSIGN_RAP", input),
-    ];
-    steps = stepsOf([1, 2, 7]);
-    notes.push("Assign a RAP — if Long Call, it may be converted to Short Call.");
-  } else if (input.bidStatus === "RSV_PR_OG") {
-    entries = [entry("REMOVE_SEQUENCE", input), entry("INPUT_ABSENCE", input)];
-    steps = stepsOf([1, 2]);
   } else {
-    // Line Holder — cannot rejoin.
+    // Cannot rejoin — all bid statuses.
     entries = [entry("REMOVE_SEQUENCE", input), entry("INPUT_ABSENCE", input)];
+    if (input.bidStatus === "RSV_FLYING") {
+      entries.push(entry("ASSIGN_RAP", input));
+      notes.push("Assign a RAP — if Long Call, it may be converted to Short Call.");
+    }
     if (input.recoveryFlying === null) {
       steps = stepsOf([1, 3, 4]);
-      pending.push("Answer “Any Recovery Flying?” to complete the steps.");
+      pending.push("Answer “Recovery Flying” to complete the steps.");
     } else if (input.recoveryFlying) {
-      steps = stepsOf([1, 3, 4, 5]);
-    } else {
+      // Recovery flying YES → step 6, then entry Assign Sequence and step 2.
       entries.push(entry("ASSIGN_SEQUENCE", input));
       steps = stepsOf([1, 3, 4, 6, 2]);
+    } else {
+      // Recovery flying NO → step 5.
+      steps = stepsOf([1, 3, 4, 5]);
     }
   }
 
