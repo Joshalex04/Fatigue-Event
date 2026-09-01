@@ -496,6 +496,64 @@ function Index() {
                   </button>
                 </div>
 
+                <div className="mt-4">
+                  <span className={labelCls}>Recovery Obligation Available</span>
+                  <div className="grid grid-cols-2 gap-2 sm:max-w-xs">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRecoveryObligation(true);
+                        setAcknowledged(false);
+                      }}
+                      className={
+                        recoveryObligation === true
+                          ? "rounded-lg bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground ring-1 ring-primary/50"
+                          : "rounded-lg bg-secondary/30 px-3 py-2.5 text-sm font-medium text-muted-foreground ring-1 ring-border"
+                      }
+                    >
+                      Yes
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRecoveryObligation(false);
+                        setAcknowledged(false);
+                      }}
+                      className={
+                        recoveryObligation === false
+                          ? "rounded-lg bg-warning px-3 py-2.5 text-sm font-semibold text-warning-foreground ring-1 ring-warning/50"
+                          : "rounded-lg bg-secondary/30 px-3 py-2.5 text-sm font-medium text-muted-foreground ring-1 ring-border"
+                      }
+                    >
+                      No
+                    </button>
+                  </div>
+                </div>
+
+                {recoveryObligation !== null ? (
+                  <div className="mt-4 flex flex-col items-center gap-3 rounded-xl bg-field/60 px-4 py-4 text-center ring-1 ring-border">
+                    <p className="font-mono text-[11px] tracking-[0.2em] text-warning uppercase">
+                      Reminder
+                    </p>
+                    <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
+                      {recoveryObligation
+                        ? "Recovery obligation is available — advise the crew member of the recovery obligation and document it before continuing."
+                        : "No recovery obligation available — document that no recovery obligation applies before continuing."}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setAckDialogOpen(true)}
+                      className={
+                        acknowledged
+                          ? "rounded-lg bg-primary/20 px-4 py-2 font-mono text-xs font-semibold text-primary uppercase ring-1 ring-primary/50"
+                          : "rounded-lg bg-primary px-4 py-2 font-mono text-xs font-semibold text-primary-foreground uppercase ring-1 ring-primary/50 transition-transform hover:-translate-y-px"
+                      }
+                    >
+                      {acknowledged ? "Acknowledged" : "Acknowledge / Done"}
+                    </button>
+                  </div>
+                ) : null}
+
                 {result.blockReason ? (
                   <div className="mt-3 flex items-start gap-3 rounded-lg bg-destructive/[0.08] px-3.5 py-3 ring-1 ring-destructive/30">
                     <span className="mt-0.5 shrink-0 font-mono text-sm font-bold text-destructive">
@@ -516,6 +574,7 @@ function Index() {
                   </div>
                 ) : null}
               </div>
+
             </div>
           </section>
 
