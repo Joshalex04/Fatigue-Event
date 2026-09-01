@@ -622,7 +622,7 @@ function Index() {
                     value={backForDutyTime}
                     onChange={(e) => setBackForDutyTime(digits(e.target.value, 4))}
                   />
-                  <span className="font-mono text-xs text-muted-foreground">hhmm</span>
+                  <span className="font-mono text-xs text-muted-foreground">HHMM</span>
                   <span className="h-4 w-px bg-border" />
                   <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                     <PopoverTrigger asChild>
