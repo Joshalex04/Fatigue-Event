@@ -6,14 +6,24 @@ import { CalendarIcon, Trash2 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   BID_STATUS_OPTIONS,
-  CONDITION_OPTIONS,
   calculateFatigue,
   entriesToText,
   parseHhmm,
   type BidStatus,
   type ConditionId,
 } from "@/lib/fatigue";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
