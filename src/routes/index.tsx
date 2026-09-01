@@ -194,7 +194,7 @@ function Index() {
   const save = () => {
     if (rejoinSequence === null) {
       alert(
-        "Please answer whether the pilot can rejoin the next sequence before saving.",
+        "Please answer whether the pilot can rejoin the sequence before saving.",
       );
       return;
     }
@@ -204,13 +204,19 @@ function Index() {
       schedulerName: schedulerName.trim() || undefined,
       bidStatus,
       eventDate,
+      airportBase,
+      employeeNumber,
+      sequenceNumber,
+      sequenceDate,
       timeOfFatigue,
       signInTime,
       backForDutyDate,
       backForDutyTime,
       femCompleted,
+      recoveryObligation,
       conditions,
       rejoinSequence,
+      rapStarted,
       payHours: result.payHours,
       eventNumber: result.eventNumber,
       status: result.status,
@@ -224,13 +230,20 @@ function Index() {
   const restore = (record: SavedEvent) => {
     setBidStatus(record.bidStatus);
     setEventDate(record.eventDate);
+    setAirportBase(record.airportBase ?? "MIA");
+    setEmployeeNumber(record.employeeNumber ?? "");
+    setSequenceNumber(record.sequenceNumber ?? "");
+    setSequenceDate(record.sequenceDate ?? "");
     setTimeOfFatigue(record.timeOfFatigue);
     setSignInTime(record.signInTime);
     setBackForDutyDate(record.backForDutyDate);
     setBackForDutyTime(record.backForDutyTime);
     setFemCompleted(record.femCompleted);
+    setRecoveryObligation(record.recoveryObligation ?? null);
+    setAcknowledged(false);
     setConditions(record.conditions ?? []);
     setRejoinSequence(record.rejoinSequence ?? null);
+    setRapStarted(record.rapStarted ?? null);
   };
 
   const remove = (id: string) => persist(saved.filter((r) => r.id !== id));
@@ -238,16 +251,25 @@ function Index() {
   const clearForm = () => {
     setBidStatus("RSV_PR_OG");
     setEventDate(format(new Date(), "dd/MM"));
+    setAirportBase("MIA");
+    setEmployeeNumber("");
+    setSequenceNumber("");
+    setSequenceDate("");
     setTimeOfFatigue("");
     setSignInTime("");
     setBackForDutyDate("");
     setBackForDutyTime("");
     setFemCompleted(false);
+    setRecoveryObligation(null);
+    setAcknowledged(false);
+    setAckDialogOpen(false);
     setConditions([]);
     setRejoinSequence(null);
+    setRapStarted(null);
     setCopied(false);
     setJustSaved(false);
   };
+
 
   const statusTone = (status: string) =>
     status === "CLEAR"
