@@ -6,17 +6,8 @@ import { CalendarIcon, Trash2 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
   BID_STATUS_OPTIONS,
+  CSS_CALENDAR_URL,
   buildEntriesPlan,
   calculateFatigue,
   planToText,
@@ -123,15 +114,12 @@ function Index() {
   const [airportBase, setAirportBase] = useState("MIA");
   const [employeeNumber, setEmployeeNumber] = useState("");
   const [sequenceNumber, setSequenceNumber] = useState("");
-  const [sequenceDate, setSequenceDate] = useState("");
+  const [sequenceDate, setSequenceDate] = useState(() => format(new Date(), "dd/MM"));
   const [timeOfFatigue, setTimeOfFatigue] = useState("2340");
   const [signInTime, setSignInTime] = useState("2215");
   const [backForDutyDate, setBackForDutyDate] = useState("05/12");
   const [backForDutyTime, setBackForDutyTime] = useState("0730");
   const [femCompleted, setFemCompleted] = useState(false);
-  const [recoveryObligation, setRecoveryObligation] = useState<boolean | null>(null);
-  const [acknowledged, setAcknowledged] = useState(false);
-  const [ackDialogOpen, setAckDialogOpen] = useState(false);
   const [conditions, setConditions] = useState<ConditionId[]>([]);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [eventCalendarOpen, setEventCalendarOpen] = useState(false);
@@ -208,6 +196,8 @@ function Index() {
         eventDate: eventDate.replace(/\D/g, ""),
         timeOfFatigue: timeOfFatigue.replace(/\D/g, ""),
         signInTime: signInTime.replace(/\D/g, ""),
+        backForDutyDate: backForDutyDate.replace(/\D/g, ""),
+        backForDutyTime: backForDutyTime.replace(/\D/g, ""),
       }),
     [
       bidStatus,
@@ -221,13 +211,16 @@ function Index() {
       eventDate,
       timeOfFatigue,
       signInTime,
+      backForDutyDate,
+      backForDutyTime,
     ],
   );
 
   const recalcKey = `${bidStatus}${timeOfFatigue}${signInTime}${backForDutyDate}${backForDutyTime}${femCompleted}${conditions.join(",")}`;
 
   const copy = async () => {
-    await navigator.clipboard.writeText(planToText(plan));
+    // Copy only the entry codes, one per line (e.g. HE/5555/01/25/MI).
+    await navigator.clipboard.writeText(plan.entries.map((e) => e.code).join("\n"));
     setCopied(true);
     setTimeout(() => setCopied(false), 1600);
   };
@@ -254,7 +247,7 @@ function Index() {
       backForDutyDate,
       backForDutyTime,
       femCompleted,
-      recoveryObligation,
+      
       conditions,
       rejoinSequence,
       rapStarted,
@@ -281,8 +274,6 @@ function Index() {
     setBackForDutyDate(record.backForDutyDate);
     setBackForDutyTime(record.backForDutyTime);
     setFemCompleted(record.femCompleted);
-    setRecoveryObligation(record.recoveryObligation ?? null);
-    setAcknowledged(false);
     setConditions(record.conditions ?? []);
     setRejoinSequence(record.rejoinSequence ?? null);
     setRapStarted(record.rapStarted ?? null);
@@ -297,15 +288,12 @@ function Index() {
     setAirportBase("MIA");
     setEmployeeNumber("");
     setSequenceNumber("");
-    setSequenceDate("");
+    setSequenceDate(format(new Date(), "dd/MM"));
     setTimeOfFatigue("");
     setSignInTime("");
     setBackForDutyDate("");
     setBackForDutyTime("");
     setFemCompleted(false);
-    setRecoveryObligation(null);
-    setAcknowledged(false);
-    setAckDialogOpen(false);
     setConditions([]);
     setRejoinSequence(null);
     setRapStarted(null);
@@ -615,6 +603,7 @@ function Index() {
                   />
                   <span className="font-mono text-xs text-muted-foreground">dd/mm</span>
                   <span className="h-4 w-px bg-border" />
+                  <span className="font-mono text-xs text-primary/70">Time</span>
                   <input
                     aria-label="Back for duty time"
                     inputMode="numeric"
@@ -677,64 +666,6 @@ function Index() {
                     No
                   </button>
                 </div>
-
-                <div className="mt-4">
-                  <span className={labelCls}>Was Recovery Obligation Available?</span>
-                  <div className="grid grid-cols-2 gap-2 sm:max-w-xs">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setRecoveryObligation(true);
-                        setAcknowledged(false);
-                      }}
-                      className={
-                        recoveryObligation === true
-                          ? "rounded-lg bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground ring-1 ring-primary/50"
-                          : "rounded-lg bg-secondary/30 px-3 py-2.5 text-sm font-medium text-muted-foreground ring-1 ring-border"
-                      }
-                    >
-                      Yes
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setRecoveryObligation(false);
-                        setAcknowledged(false);
-                      }}
-                      className={
-                        recoveryObligation === false
-                          ? "rounded-lg bg-warning px-3 py-2.5 text-sm font-semibold text-warning-foreground ring-1 ring-warning/50"
-                          : "rounded-lg bg-secondary/30 px-3 py-2.5 text-sm font-medium text-muted-foreground ring-1 ring-border"
-                      }
-                    >
-                      No
-                    </button>
-                  </div>
-                </div>
-
-                {recoveryObligation !== null ? (
-                  <div className="mt-4 flex flex-col items-center gap-3 rounded-xl bg-field/60 px-4 py-4 text-center ring-1 ring-border">
-                    <p className="font-mono text-[11px] tracking-[0.2em] text-warning uppercase">
-                      Reminder
-                    </p>
-                    <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
-                      {recoveryObligation
-                        ? "Recovery obligation is available — advise the crew member of the recovery obligation and document it before continuing."
-                        : "No recovery obligation available — document that no recovery obligation applies before continuing."}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setAckDialogOpen(true)}
-                      className={
-                        acknowledged
-                          ? "rounded-lg bg-primary/20 px-4 py-2 font-mono text-xs font-semibold text-primary uppercase ring-1 ring-primary/50"
-                          : "rounded-lg bg-primary px-4 py-2 font-mono text-xs font-semibold text-primary-foreground uppercase ring-1 ring-primary/50 transition-transform hover:-translate-y-px"
-                      }
-                    >
-                      {acknowledged ? "Acknowledged" : "Acknowledge / Done"}
-                    </button>
-                  </div>
-                ) : null}
 
                 {result.blockReason ? (
                   <div className="mt-3 flex items-start gap-3 rounded-lg bg-destructive/[0.08] px-3.5 py-3 ring-1 ring-destructive/30">
@@ -969,7 +900,24 @@ function Index() {
                       <span className="grid size-6 shrink-0 place-items-center rounded bg-accent/15 font-mono text-xs font-semibold text-accent">
                         {s.n}
                       </span>
-                      <p className="text-xs leading-relaxed text-muted-foreground">{s.text}</p>
+                      <p className="text-xs leading-relaxed text-muted-foreground">
+                        {s.text.includes(CSS_CALENDAR_URL) ? (
+                          <>
+                            {s.text.split(CSS_CALENDAR_URL)[0]}
+                            <a
+                              href={CSS_CALENDAR_URL}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-primary underline underline-offset-2 hover:text-primary/80"
+                            >
+                              {CSS_CALENDAR_URL}
+                            </a>
+                            {s.text.split(CSS_CALENDAR_URL)[1]}
+                          </>
+                        ) : (
+                          s.text
+                        )}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -1064,27 +1012,6 @@ function Index() {
         </footer>
       </div>
 
-      <AlertDialog open={ackDialogOpen} onOpenChange={setAckDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Reminder acknowledged</AlertDialogTitle>
-            <AlertDialogDescription>
-              Would you like to clear the form and start a new fatigue event, or continue with
-              the current one?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              onClick={() => {
-                clearForm();
-              }}
-            >
-              Clear form
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={() => setAcknowledged(true)}>Continue</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
 
   );
