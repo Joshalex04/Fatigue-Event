@@ -900,7 +900,24 @@ function Index() {
                       <span className="grid size-6 shrink-0 place-items-center rounded bg-accent/15 font-mono text-xs font-semibold text-accent">
                         {s.n}
                       </span>
-                      <p className="text-xs leading-relaxed text-muted-foreground">{s.text}</p>
+                      <p className="text-xs leading-relaxed text-muted-foreground">
+                        {s.text.includes(CSS_CALENDAR_URL) ? (
+                          <>
+                            {s.text.split(CSS_CALENDAR_URL)[0]}
+                            <a
+                              href={CSS_CALENDAR_URL}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-primary underline underline-offset-2 hover:text-primary/80"
+                            >
+                              {CSS_CALENDAR_URL}
+                            </a>
+                            {s.text.split(CSS_CALENDAR_URL)[1]}
+                          </>
+                        ) : (
+                          s.text
+                        )}
+                      </p>
                     </div>
                   ))}
                 </div>
