@@ -17,8 +17,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   BID_STATUS_OPTIONS,
+  buildEntriesPlan,
   calculateFatigue,
-  entriesToText,
+  planToText,
   parseHhmm,
   type BidStatus,
   type ConditionId,
@@ -104,6 +105,7 @@ interface SavedEvent {
   entries: string;
   rejoinSequence: boolean | null;
   rapStarted?: boolean | null;
+  recoveryFlying?: boolean | null;
 }
 
 const STORAGE_KEY = "fatigue-events-v1";
