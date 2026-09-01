@@ -8,6 +8,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useSession } from "@/lib/session";
 import { SignInScreen } from "@/components/sign-in-screen";
+import { PlaneSplash } from "@/components/plane-splash";
 import { SuggestionBox } from "@/components/suggestion-box";
 import { AdminSuggestions } from "@/components/admin-suggestions";
 import {
@@ -112,6 +113,7 @@ const STORAGE_KEY = "fatigue-events-v1";
 function Index() {
   const { hydrated, user, signIn, signOut } = useSession();
   const [bidStatus, setBidStatus] = useState<BidStatus>("RSV_PR_OG");
+  const [splash, setSplash] = useState(false);
   const [schedulerName, setSchedulerName] = useState(() => {
     try {
       return localStorage.getItem("fatigue-scheduler-name") ?? "";
@@ -351,6 +353,7 @@ function Index() {
       <SignInScreen
         onSignIn={(name, phone) => {
           signIn(name, phone);
+          setSplash(true);
           if (!schedulerName.trim()) {
             setSchedulerName(name.trim());
             try {
@@ -362,6 +365,10 @@ function Index() {
         }}
       />
     );
+  }
+
+  if (splash) {
+    return <PlaneSplash onDone={() => setSplash(false)} />;
   }
 
   return (

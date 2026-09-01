@@ -108,6 +108,53 @@
 }
 
 
+@keyframes plane-fly {
+  0% {
+    transform: translateY(60px) scale(0.12);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  70% {
+    transform: translateY(10px) scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-30px) scale(14);
+    opacity: 0;
+  }
+}
+
+@keyframes plane-speed {
+  0% { opacity: 0; background-position: 0 0; }
+  60% { opacity: 0; }
+  80% { opacity: 0.5; }
+  100% { opacity: 0; background-position: 0 240px; }
+}
+
+@keyframes plane-tag {
+  0%, 70% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.plane-fly {
+  animation: plane-fly 2.1s cubic-bezier(0.55, 0.06, 0.35, 1) forwards;
+}
+
+.plane-speed {
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0 46px,
+    oklch(1 0 0 / 0.08) 46px 48px
+  );
+  animation: plane-speed 2.1s linear forwards;
+}
+
+.plane-tag {
+  animation: plane-tag 2.1s ease forwards;
+}
+
 @keyframes recalc {
   0% {
     box-shadow: 0 0 0 0 transparent;
