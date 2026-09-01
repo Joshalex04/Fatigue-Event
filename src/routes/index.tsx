@@ -135,6 +135,7 @@ function Index() {
   const [conditions, setConditions] = useState<ConditionId[]>([]);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [eventCalendarOpen, setEventCalendarOpen] = useState(false);
+  const [sequenceCalendarOpen, setSequenceCalendarOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState<SavedEvent[]>([]);
   const [justSaved, setJustSaved] = useState(false);
