@@ -895,10 +895,10 @@ function Index() {
 
               {plan.steps.length > 0 ? (
                 <div className="mt-3 divide-y divide-border rounded-xl bg-field/60 text-sm ring-1 ring-border">
-                  {plan.steps.map((s) => (
+                  {plan.steps.map((s, idx) => (
                     <div key={s.n} className="flex items-start gap-3 px-3.5 py-3">
                       <span className="grid size-6 shrink-0 place-items-center rounded bg-accent/15 font-mono text-xs font-semibold text-accent">
-                        {s.n}
+                        {String.fromCharCode(65 + idx)}
                       </span>
                       <p className="text-xs leading-relaxed text-muted-foreground">
                         {s.text.includes(CSS_CALENDAR_URL) ? (
