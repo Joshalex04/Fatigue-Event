@@ -140,10 +140,6 @@ function Index() {
   const [rapStarted, setRapStarted] = useState<boolean | null>(null);
 
 
-  const toggleCondition = (id: ConditionId) =>
-    setConditions((prev) =>
-      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id],
-    );
 
   useEffect(() => {
     try {
