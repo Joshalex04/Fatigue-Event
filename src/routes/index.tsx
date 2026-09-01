@@ -652,7 +652,7 @@ function Index() {
 
               <div>
                 <span className={labelCls}>Back for Duty</span>
-                <div className={`${fieldWrap} sm:max-w-xs`}>
+                <div className={fieldWrap}>
                   <span className="font-mono text-xs text-primary/70">Date</span>
                   <input
                     aria-label="Back for duty date"
