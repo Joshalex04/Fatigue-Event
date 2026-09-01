@@ -1,43 +1,40 @@
-import { useEffect, useState } from "react";
-import { Trash2 } from "lucide-react";
+import { useState } from "react";
 
-interface Suggestion {
+export interface Suggestion {
   id: string;
   text: string;
   author?: string;
   createdAt: string;
 }
 
-const KEY = "fatigue-suggestions-v1";
+export const SUGGESTIONS_KEY = "fatigue-suggestions-v1";
+
+export function readSuggestions(): Suggestion[] {
+  try {
+    const raw = localStorage.getItem(SUGGESTIONS_KEY);
+    return raw ? (JSON.parse(raw) as Suggestion[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function writeSuggestions(next: Suggestion[]) {
+  try {
+    localStorage.setItem(SUGGESTIONS_KEY, JSON.stringify(next));
+  } catch {
+    /* ignore quota errors */
+  }
+}
 
 export function SuggestionBox({ author }: { author?: string }) {
-  const [items, setItems] = useState<Suggestion[]>([]);
   const [text, setText] = useState("");
   const [sent, setSent] = useState(false);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(KEY);
-      if (raw) setItems(JSON.parse(raw) as Suggestion[]);
-    } catch {
-      /* ignore corrupt storage */
-    }
-  }, []);
-
-  const persist = (next: Suggestion[]) => {
-    setItems(next);
-    try {
-      localStorage.setItem(KEY, JSON.stringify(next));
-    } catch {
-      /* ignore quota errors */
-    }
-  };
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const value = text.trim();
     if (!value) return;
-    persist(
+    writeSuggestions(
       [
         {
           id: `${Date.now()}`,
@@ -45,7 +42,7 @@ export function SuggestionBox({ author }: { author?: string }) {
           ...(author ? { author } : {}),
           createdAt: new Date().toISOString(),
         },
-        ...items,
+        ...readSuggestions(),
       ].slice(0, 50),
     );
     setText("");
@@ -55,20 +52,9 @@ export function SuggestionBox({ author }: { author?: string }) {
 
   return (
     <section className="rounded-2xl bg-panel/40 p-5 ring-1 ring-border backdrop-blur-xl sm:p-6">
-      <div className="mb-4 flex items-center justify-between">
-        <p className="font-mono text-[11px] tracking-[0.2em] text-muted-foreground uppercase">
-          Suggestion Box · {items.length}
-        </p>
-        {items.length > 0 ? (
-          <button
-            type="button"
-            onClick={() => persist([])}
-            className="font-mono text-[11px] text-muted-foreground uppercase hover:text-destructive"
-          >
-            Clear all
-          </button>
-        ) : null}
-      </div>
+      <p className="mb-4 font-mono text-[11px] tracking-[0.2em] text-muted-foreground uppercase">
+        Suggestion Box
+      </p>
 
       <form onSubmit={submit}>
         <textarea
@@ -84,33 +70,9 @@ export function SuggestionBox({ author }: { author?: string }) {
           {sent ? "Thanks!" : "Submit suggestion"}
         </button>
       </form>
-
-      {items.length > 0 ? (
-        <div className="mt-4 max-h-56 space-y-2 overflow-y-auto pr-1">
-          {items.map((s) => (
-            <div
-              key={s.id}
-              className="flex items-start gap-2 rounded-xl bg-field/60 px-3 py-2 text-sm ring-1 ring-border"
-            >
-              <div className="min-w-0 flex-1">
-                <p className="break-words">{s.text}</p>
-                <p className="mt-1 font-mono text-[10px] text-muted-foreground uppercase">
-                  {s.author ? `${s.author} · ` : ""}
-                  {new Date(s.createdAt).toLocaleDateString()}
-                </p>
-              </div>
-              <button
-                type="button"
-                aria-label="Delete suggestion"
-                onClick={() => persist(items.filter((i) => i.id !== s.id))}
-                className="grid size-7 shrink-0 place-items-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-              >
-                <Trash2 className="size-4" />
-              </button>
-            </div>
-          ))}
-        </div>
-      ) : null}
+      <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+        Submissions are reviewed by the administrator.
+      </p>
     </section>
   );
 }
