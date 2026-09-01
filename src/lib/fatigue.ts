@@ -366,30 +366,46 @@ export interface EntriesPlan {
   notes: string[];
 }
 
+/** hhmm + 1 minute, rolling past midnight. Returns null for invalid input. */
+function plusOneMinute(hhmm: string): string | null {
+  const mins = parseHhmm(hhmm);
+  if (mins === null) return null;
+  const next = (mins + 1) % 1440;
+  return `${String(Math.floor(next / 60)).padStart(2, "0")}${String(next % 60).padStart(2, "0")}`;
+}
+
 function fillTemplate(key: EntryKey, input: PlanInput): string {
   const emp = input.employeeNumber.trim() || "EMP#";
   const seq = input.sequenceNumber.trim() || "SEQNUM";
-  const dt = input.eventDate || "DT";
-  const sdt = input.sequenceDate || "SDT";
-  const ft = input.timeOfFatigue || "FT";
-  const stm = input.signInTime || "STM";
+  // DT: sequence date as DD
+  const dt = DDMM.test(input.sequenceDate) ? input.sequenceDate.slice(0, 2) : "DT";
+  // FDT: event date as DDMM
+  const fdt = DDMM.test(input.eventDate) ? input.eventDate : "FDT";
+  // TDT: back-for-duty date as DDMM
+  const tdt = DDMM.test(input.backForDutyDate) ? input.backForDutyDate : "TDT";
+  // FTM: time of fatigue + 1 minute
+  const ftm = plusOneMinute(input.timeOfFatigue) ?? "FTM";
+  // TTM: back-for-duty time
+  const ttm = parseHhmm(input.backForDutyTime) !== null ? input.backForDutyTime : "TTM";
+  // STM: start (sign-in) time
+  const stm = parseHhmm(input.signInTime) !== null ? input.signInTime : "STM";
   switch (key) {
     case "REMOVE_SEQUENCE":
       return `2G/${emp}/${seq}/${dt}/FT`;
     case "INPUT_ABSENCE":
-      return `A4/${emp}/FT/${dt}/${dt}//TM/TM`;
+      return `A4/${emp}/FT/${fdt}/${tdt}//${ftm}/${ttm}`;
     case "MODIFY_SEQUENCE":
       return `HE/${seq}/${dt}/25/MI`;
     case "MODIFY_RAP":
-      return `HYR(V)/${emp}/${sdt}/EDT//STIME/ETIME`;
+      return `HYR(V)/${emp}/${dt}/${dt}//${stm}/END TIME`;
     case "REMOVE_RAP":
-      return `HYR(V)/${emp}/${sdt}/${stm}//R`;
+      return `HYR(V)/${emp}/${fdt}//R`;
     case "SET_ABSENCE":
-      return `A4/${emp}/FT/${dt}/${dt}///ETM`;
+      return `A4/${emp}/FT/${dt}/${tdt}///${ttm}`;
     case "ASSIGN_RAP":
-      return `HYR/${emp}/${dt}//RAP TIME`;
+      return `HYR/${emp}/${fdt}//RAP TIME`;
     case "ASSIGN_SEQUENCE":
-      return `HU/${emp}/${seq}/${dt}/FT`;
+      return `HU/${emp}/${seq}/${fdt}/FT`;
   }
 }
 
