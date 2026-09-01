@@ -226,7 +226,7 @@ function Index() {
   const recalcKey = `${bidStatus}${timeOfFatigue}${signInTime}${backForDutyDate}${backForDutyTime}${femCompleted}${conditions.join(",")}`;
 
   const copy = async () => {
-    await navigator.clipboard.writeText(entriesToText(result));
+    await navigator.clipboard.writeText(planToText(plan));
     setCopied(true);
     setTimeout(() => setCopied(false), 1600);
   };
@@ -257,10 +257,11 @@ function Index() {
       conditions,
       rejoinSequence,
       rapStarted,
+      recoveryFlying,
       payHours: result.payHours,
       eventNumber: result.eventNumber,
       status: result.status,
-      entries: entriesToText(result),
+      entries: planToText(plan),
     };
     persist([record, ...saved].slice(0, 100));
     setJustSaved(true);
@@ -284,6 +285,7 @@ function Index() {
     setConditions(record.conditions ?? []);
     setRejoinSequence(record.rejoinSequence ?? null);
     setRapStarted(record.rapStarted ?? null);
+    setRecoveryFlying(record.recoveryFlying ?? null);
   };
 
   const remove = (id: string) => persist(saved.filter((r) => r.id !== id));
