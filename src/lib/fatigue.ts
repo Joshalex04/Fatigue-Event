@@ -1,4 +1,6 @@
+import { matchRules, type RuleFacts } from "./fatigue-rules";
 /**
+
  * Fatigue Event calculation engine.
  *
  * All airline-specific rules live in the RULES table below so the scenario
@@ -425,59 +427,50 @@ function stepsOf(nums: number[]): PlanStep[] {
   return nums.map((n) => ({ n, text: STEP_TEXTS[n] ?? "" }));
 }
 
-/** Build the labeled entries and ordered steps for the current scenario. */
+/** Build the labeled entries and ordered steps from the rules database. */
 export function buildEntriesPlan(input: PlanInput): EntriesPlan {
   const pending: string[] = [];
   const notes: string[] = [];
-  let entries: PlanEntry[] = [];
-  let steps: PlanStep[] = [];
+  const entries: PlanEntry[] = [];
+  const stepNums: number[] = [];
 
   if (input.priorSignIn === null) {
     pending.push("Enter a valid sign-in time and time of fatigue.");
-    return { ready: false, pending, entries, steps, notes };
+    return { ready: false, pending, entries, steps: [], notes };
   }
   if (!input.priorSignIn) {
     pending.push("After sign-in scenario steps are not defined yet — prior sign-in rules shown only.");
-    return { ready: false, pending, entries, steps, notes };
+    return { ready: false, pending, entries, steps: [], notes };
   }
   if (input.rejoinSequence === null) {
     pending.push("Answer “Can Rejoin Sequence?” to generate the entries and steps.");
-    return { ready: false, pending, entries, steps, notes };
+    return { ready: false, pending, entries, steps: [], notes };
   }
 
-  if (input.rejoinSequence) {
-    // All scenarios — pilot can rejoin the sequence.
-    entries = [entry("MODIFY_SEQUENCE", input), entry("INPUT_ABSENCE", input)];
-    steps = stepsOf([1, 2]);
-    if (input.bidStatus === "RSV_FLYING") {
-      if (input.rapStarted === null) {
-        pending.push("Answer “RAP Started” to complete the entries.");
-      } else {
-        entries.push(entry(input.rapStarted ? "MODIFY_RAP" : "REMOVE_RAP", input));
+  const facts: RuleFacts = {
+    bidStatus: input.bidStatus,
+    priorSignIn: input.priorSignIn,
+    rejoinSequence: input.rejoinSequence,
+    rapStarted: input.rapStarted,
+    recoveryFlying: input.recoveryFlying,
+  };
+
+  for (const rule of matchRules(facts)) {
+    for (const req of rule.requires ?? []) {
+      if (facts[req.field] === null && !pending.includes(req.message)) {
+        pending.push(req.message);
       }
     }
-  } else {
-    // Cannot rejoin — all bid statuses.
-    entries = [entry("REMOVE_SEQUENCE", input), entry("INPUT_ABSENCE", input)];
-    if (input.bidStatus === "RSV_FLYING") {
-      entries.push(entry("ASSIGN_RAP", input));
-      notes.push("Assign a RAP — if Long Call, it may be converted to Short Call.");
+    for (const key of rule.entries ?? []) {
+      if (!entries.some((e) => e.key === key)) entries.push(entry(key, input));
     }
-    if (input.recoveryFlying === null) {
-      steps = stepsOf([1, 3, 4]);
-      pending.push("Answer “Recovery Flying” to complete the steps.");
-    } else if (input.recoveryFlying) {
-      // Recovery flying YES → step 6, then entry Assign Sequence and step 2.
-      entries.push(entry("ASSIGN_SEQUENCE", input));
-      steps = stepsOf([1, 3, 4, 6, 2]);
-    } else {
-      // Recovery flying NO → step 5.
-      steps = stepsOf([1, 3, 4, 5]);
-    }
+    for (const n of rule.steps ?? []) stepNums.push(n);
+    for (const note of rule.notes ?? []) notes.push(note);
   }
 
-  return { ready: pending.length === 0, pending, entries, steps, notes };
+  return { ready: pending.length === 0, pending, entries, steps: stepsOf(stepNums), notes };
 }
+
 
 export function planToText(plan: EntriesPlan): string {
   const lines: string[] = ["ENTRIES"];
