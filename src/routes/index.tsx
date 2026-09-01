@@ -6,16 +6,6 @@ import { CalendarIcon, Trash2 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
   BID_STATUS_OPTIONS,
   buildEntriesPlan,
   calculateFatigue,
@@ -1011,27 +1001,6 @@ function Index() {
         </footer>
       </div>
 
-      <AlertDialog open={ackDialogOpen} onOpenChange={setAckDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Reminder acknowledged</AlertDialogTitle>
-            <AlertDialogDescription>
-              Would you like to clear the form and start a new fatigue event, or continue with
-              the current one?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              onClick={() => {
-                clearForm();
-              }}
-            >
-              Clear form
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={() => setAcknowledged(true)}>Continue</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
 
   );
