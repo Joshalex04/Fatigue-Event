@@ -8,6 +8,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useSession } from "@/lib/session";
 import { SignInScreen } from "@/components/sign-in-screen";
+import { PlaneSplash } from "@/components/plane-splash";
 import { SuggestionBox } from "@/components/suggestion-box";
 import { AdminSuggestions } from "@/components/admin-suggestions";
 import {
