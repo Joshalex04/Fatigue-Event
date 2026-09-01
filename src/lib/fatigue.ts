@@ -317,12 +317,20 @@ export const STEP_TEXTS: Record<number, string> = {
   1: `Go to ${CSS_CALENDAR_URL} — click on RFW.`,
   2: "Select I'm Done.",
   3: "Click on the Fatigue Red Puck, open Sequence Look.",
-  4: "Any Recovery Flying? Answer Yes or No with the buttons above.",
+  4: "Any Recovery Flying?",
   5: "Click on RFW, and select I am Done.",
-  6: "Assign best solution: add a sequence (entry: Assign Sequence).",
+  6: "Assign best solution.",
   7: "Assign a RAP (entry: Assign RAP).",
   8: "If Long Call RSV, it may be converted to Short Call.",
 };
+
+const MONTHS3 = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+
+/** ddmm -> DDMMM (e.g. 0109 -> 01SEP). Returns null for invalid input. */
+export function ddmmToDdMmm(ddmm: string): string | null {
+  if (!DDMM.test(ddmm)) return null;
+  return `${ddmm.slice(0, 2)}${MONTHS3[Number(ddmm.slice(2)) - 1]}`;
+}
 
 export interface PlanInput {
   bidStatus: BidStatus;
@@ -379,10 +387,10 @@ function fillTemplate(key: EntryKey, input: PlanInput): string {
   const seq = input.sequenceNumber.trim() || "SEQNUM";
   // DT: sequence date as DD
   const dt = DDMM.test(input.sequenceDate) ? input.sequenceDate.slice(0, 2) : "DT";
-  // FDT: event date as DDMM
-  const fdt = DDMM.test(input.eventDate) ? input.eventDate : "FDT";
-  // TDT: back-for-duty date as DDMM
-  const tdt = DDMM.test(input.backForDutyDate) ? input.backForDutyDate : "TDT";
+  // FDT: event date as DDMMM
+  const fdt = ddmmToDdMmm(input.eventDate) ?? "FDT";
+  // TDT: back-for-duty date as DDMMM
+  const tdt = ddmmToDdMmm(input.backForDutyDate) ?? "TDT";
   // FTM: time of fatigue + 1 minute
   const ftm = plusOneMinute(input.timeOfFatigue) ?? "FTM";
   // TTM: back-for-duty time
