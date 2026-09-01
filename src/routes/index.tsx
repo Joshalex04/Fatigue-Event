@@ -123,7 +123,7 @@ function Index() {
   const [airportBase, setAirportBase] = useState("MIA");
   const [employeeNumber, setEmployeeNumber] = useState("");
   const [sequenceNumber, setSequenceNumber] = useState("");
-  const [sequenceDate, setSequenceDate] = useState("");
+  const [sequenceDate, setSequenceDate] = useState(() => format(new Date(), "dd/MM"));
   const [timeOfFatigue, setTimeOfFatigue] = useState("2340");
   const [signInTime, setSignInTime] = useState("2215");
   const [backForDutyDate, setBackForDutyDate] = useState("05/12");
@@ -208,6 +208,8 @@ function Index() {
         eventDate: eventDate.replace(/\D/g, ""),
         timeOfFatigue: timeOfFatigue.replace(/\D/g, ""),
         signInTime: signInTime.replace(/\D/g, ""),
+        backForDutyDate: backForDutyDate.replace(/\D/g, ""),
+        backForDutyTime: backForDutyTime.replace(/\D/g, ""),
       }),
     [
       bidStatus,
@@ -221,6 +223,8 @@ function Index() {
       eventDate,
       timeOfFatigue,
       signInTime,
+      backForDutyDate,
+      backForDutyTime,
     ],
   );
 
