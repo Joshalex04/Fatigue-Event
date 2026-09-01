@@ -7,6 +7,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   BID_STATUS_OPTIONS,
+  CSS_CALENDAR_URL,
   buildEntriesPlan,
   calculateFatigue,
   planToText,
@@ -602,6 +603,7 @@ function Index() {
                   />
                   <span className="font-mono text-xs text-muted-foreground">dd/mm</span>
                   <span className="h-4 w-px bg-border" />
+                  <span className="font-mono text-xs text-primary/70">Time</span>
                   <input
                     aria-label="Back for duty time"
                     inputMode="numeric"
