@@ -838,7 +838,7 @@ function Index() {
                     ) : null}
                     <div className="mt-2 flex w-full items-center gap-2 border-t border-border pt-2">
                       <span className="font-mono text-sm font-semibold tracking-wider uppercase">
-                        Any Recovery Flying?
+                        Recovery Flying?
                       </span>
                       <button
                         type="button"
