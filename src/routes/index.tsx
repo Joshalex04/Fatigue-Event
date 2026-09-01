@@ -69,23 +69,31 @@ function parseDdmm(ddmm: string): Date | undefined {
   return new Date(now.getFullYear(), month, day);
 }
 
+const AIRPORT_BASES = ["MIA", "LAX", "DCA", "DFW", "ORD", "PHL", "PHX", "CLT", "LGA", "BOS"];
+
 interface SavedEvent {
   id: string;
   savedAt: string;
   schedulerName?: string | undefined;
   bidStatus: BidStatus;
   eventDate: string;
+  airportBase?: string;
+  employeeNumber?: string;
+  sequenceNumber?: string;
+  sequenceDate?: string;
   timeOfFatigue: string;
   signInTime: string;
   backForDutyDate: string;
   backForDutyTime: string;
   femCompleted: boolean;
+  recoveryObligation?: boolean | null;
   conditions?: ConditionId[];
   payHours: string;
   eventNumber: string;
   status: string;
   entries: string;
   rejoinSequence: boolean | null;
+  rapStarted?: boolean | null;
 }
 
 const STORAGE_KEY = "fatigue-events-v1";
@@ -100,11 +108,18 @@ function Index() {
     }
   });
   const [eventDate, setEventDate] = useState(() => format(new Date(), "dd/MM"));
+  const [airportBase, setAirportBase] = useState("MIA");
+  const [employeeNumber, setEmployeeNumber] = useState("");
+  const [sequenceNumber, setSequenceNumber] = useState("");
+  const [sequenceDate, setSequenceDate] = useState("");
   const [timeOfFatigue, setTimeOfFatigue] = useState("2340");
   const [signInTime, setSignInTime] = useState("2215");
   const [backForDutyDate, setBackForDutyDate] = useState("05/12");
   const [backForDutyTime, setBackForDutyTime] = useState("0730");
   const [femCompleted, setFemCompleted] = useState(false);
+  const [recoveryObligation, setRecoveryObligation] = useState<boolean | null>(null);
+  const [acknowledged, setAcknowledged] = useState(false);
+  const [ackDialogOpen, setAckDialogOpen] = useState(false);
   const [conditions, setConditions] = useState<ConditionId[]>([]);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [eventCalendarOpen, setEventCalendarOpen] = useState(false);
@@ -112,6 +127,8 @@ function Index() {
   const [saved, setSaved] = useState<SavedEvent[]>([]);
   const [justSaved, setJustSaved] = useState(false);
   const [rejoinSequence, setRejoinSequence] = useState<boolean | null>(null);
+  const [rapStarted, setRapStarted] = useState<boolean | null>(null);
+
 
   const toggleCondition = (id: ConditionId) =>
     setConditions((prev) =>
