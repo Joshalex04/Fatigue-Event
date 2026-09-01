@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useSession } from "@/lib/session";
 import { SignInScreen } from "@/components/sign-in-screen";
 import { SuggestionBox } from "@/components/suggestion-box";
+import { AdminSuggestions } from "@/components/admin-suggestions";
 import {
   BID_STATUS_OPTIONS,
   CSS_CALENDAR_URL,
@@ -1064,8 +1065,9 @@ function Index() {
             </div>
           )}
         </section>
-        <div className="lg:col-span-4">
+        <div className="space-y-5 lg:col-span-4">
           <SuggestionBox author={user.name} />
+          <AdminSuggestions />
         </div>
         </div>
 
