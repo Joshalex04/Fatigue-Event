@@ -6,14 +6,24 @@ import { CalendarIcon, Trash2 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   BID_STATUS_OPTIONS,
-  CONDITION_OPTIONS,
   calculateFatigue,
   entriesToText,
   parseHhmm,
   type BidStatus,
   type ConditionId,
 } from "@/lib/fatigue";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -69,23 +79,31 @@ function parseDdmm(ddmm: string): Date | undefined {
   return new Date(now.getFullYear(), month, day);
 }
 
+const AIRPORT_BASES = ["MIA", "LAX", "DCA", "DFW", "ORD", "PHL", "PHX", "CLT", "LGA", "BOS"];
+
 interface SavedEvent {
   id: string;
   savedAt: string;
   schedulerName?: string | undefined;
   bidStatus: BidStatus;
   eventDate: string;
+  airportBase?: string;
+  employeeNumber?: string;
+  sequenceNumber?: string;
+  sequenceDate?: string;
   timeOfFatigue: string;
   signInTime: string;
   backForDutyDate: string;
   backForDutyTime: string;
   femCompleted: boolean;
+  recoveryObligation?: boolean | null;
   conditions?: ConditionId[];
   payHours: string;
   eventNumber: string;
   status: string;
   entries: string;
   rejoinSequence: boolean | null;
+  rapStarted?: boolean | null;
 }
 
 const STORAGE_KEY = "fatigue-events-v1";
@@ -100,11 +118,18 @@ function Index() {
     }
   });
   const [eventDate, setEventDate] = useState(() => format(new Date(), "dd/MM"));
+  const [airportBase, setAirportBase] = useState("MIA");
+  const [employeeNumber, setEmployeeNumber] = useState("");
+  const [sequenceNumber, setSequenceNumber] = useState("");
+  const [sequenceDate, setSequenceDate] = useState("");
   const [timeOfFatigue, setTimeOfFatigue] = useState("2340");
   const [signInTime, setSignInTime] = useState("2215");
   const [backForDutyDate, setBackForDutyDate] = useState("05/12");
   const [backForDutyTime, setBackForDutyTime] = useState("0730");
   const [femCompleted, setFemCompleted] = useState(false);
+  const [recoveryObligation, setRecoveryObligation] = useState<boolean | null>(null);
+  const [acknowledged, setAcknowledged] = useState(false);
+  const [ackDialogOpen, setAckDialogOpen] = useState(false);
   const [conditions, setConditions] = useState<ConditionId[]>([]);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [eventCalendarOpen, setEventCalendarOpen] = useState(false);
@@ -112,11 +137,9 @@ function Index() {
   const [saved, setSaved] = useState<SavedEvent[]>([]);
   const [justSaved, setJustSaved] = useState(false);
   const [rejoinSequence, setRejoinSequence] = useState<boolean | null>(null);
+  const [rapStarted, setRapStarted] = useState<boolean | null>(null);
 
-  const toggleCondition = (id: ConditionId) =>
-    setConditions((prev) =>
-      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id],
-    );
+
 
   useEffect(() => {
     try {
@@ -177,7 +200,7 @@ function Index() {
   const save = () => {
     if (rejoinSequence === null) {
       alert(
-        "Please answer whether the pilot can rejoin the next sequence before saving.",
+        "Please answer whether the pilot can rejoin the sequence before saving.",
       );
       return;
     }
@@ -187,13 +210,19 @@ function Index() {
       schedulerName: schedulerName.trim() || undefined,
       bidStatus,
       eventDate,
+      airportBase,
+      employeeNumber,
+      sequenceNumber,
+      sequenceDate,
       timeOfFatigue,
       signInTime,
       backForDutyDate,
       backForDutyTime,
       femCompleted,
+      recoveryObligation,
       conditions,
       rejoinSequence,
+      rapStarted,
       payHours: result.payHours,
       eventNumber: result.eventNumber,
       status: result.status,
@@ -207,13 +236,20 @@ function Index() {
   const restore = (record: SavedEvent) => {
     setBidStatus(record.bidStatus);
     setEventDate(record.eventDate);
+    setAirportBase(record.airportBase ?? "MIA");
+    setEmployeeNumber(record.employeeNumber ?? "");
+    setSequenceNumber(record.sequenceNumber ?? "");
+    setSequenceDate(record.sequenceDate ?? "");
     setTimeOfFatigue(record.timeOfFatigue);
     setSignInTime(record.signInTime);
     setBackForDutyDate(record.backForDutyDate);
     setBackForDutyTime(record.backForDutyTime);
     setFemCompleted(record.femCompleted);
+    setRecoveryObligation(record.recoveryObligation ?? null);
+    setAcknowledged(false);
     setConditions(record.conditions ?? []);
     setRejoinSequence(record.rejoinSequence ?? null);
+    setRapStarted(record.rapStarted ?? null);
   };
 
   const remove = (id: string) => persist(saved.filter((r) => r.id !== id));
@@ -221,16 +257,25 @@ function Index() {
   const clearForm = () => {
     setBidStatus("RSV_PR_OG");
     setEventDate(format(new Date(), "dd/MM"));
+    setAirportBase("MIA");
+    setEmployeeNumber("");
+    setSequenceNumber("");
+    setSequenceDate("");
     setTimeOfFatigue("");
     setSignInTime("");
     setBackForDutyDate("");
     setBackForDutyTime("");
     setFemCompleted(false);
+    setRecoveryObligation(null);
+    setAcknowledged(false);
+    setAckDialogOpen(false);
     setConditions([]);
     setRejoinSequence(null);
+    setRapStarted(null);
     setCopied(false);
     setJustSaved(false);
   };
+
 
   const statusTone = (status: string) =>
     status === "CLEAR"
@@ -384,6 +429,80 @@ function Index() {
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label className={labelCls} htmlFor="airport-base">
+                    Airport Base
+                  </label>
+                  <div className={fieldWrap}>
+                    <span className="font-mono text-xs text-primary/70">BASE</span>
+                    <select
+                      id="airport-base"
+                      className={`${fieldInput} appearance-none`}
+                      value={airportBase}
+                      onChange={(e) => setAirportBase(e.target.value)}
+                    >
+                      {AIRPORT_BASES.map((code) => (
+                        <option key={code} value={code} className="bg-background">
+                          {code}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className={labelCls} htmlFor="employee-number">
+                    Employee #
+                  </label>
+                  <div className={fieldWrap}>
+                    <span className="font-mono text-xs text-primary/70">EMP</span>
+                    <input
+                      id="employee-number"
+                      inputMode="numeric"
+                      placeholder="000000"
+                      className={`${fieldInput} placeholder:text-muted-foreground/50`}
+                      value={employeeNumber}
+                      onChange={(e) => setEmployeeNumber(digits(e.target.value, 8))}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label className={labelCls} htmlFor="sequence-number">
+                    Sequence Number
+                  </label>
+                  <div className={fieldWrap}>
+                    <span className="font-mono text-xs text-primary/70">SEQ</span>
+                    <input
+                      id="sequence-number"
+                      placeholder="0000"
+                      className={`${fieldInput} placeholder:text-muted-foreground/50`}
+                      value={sequenceNumber}
+                      onChange={(e) => setSequenceNumber(e.target.value.toUpperCase().slice(0, 10))}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className={labelCls} htmlFor="sequence-date">
+                    Sequence Date
+                  </label>
+                  <div className={fieldWrap}>
+                    <span className="font-mono text-xs text-primary/70">Date</span>
+                    <input
+                      id="sequence-date"
+                      inputMode="numeric"
+                      className={fieldInput}
+                      value={sequenceDate}
+                      onChange={(e) => setSequenceDate(formatDdMmSlash(e.target.value))}
+                    />
+                    <span className="font-mono text-xs text-muted-foreground">dd/mm</span>
+                  </div>
+                </div>
+              </div>
+
+
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
@@ -496,6 +615,64 @@ function Index() {
                   </button>
                 </div>
 
+                <div className="mt-4">
+                  <span className={labelCls}>Recovery Obligation Available</span>
+                  <div className="grid grid-cols-2 gap-2 sm:max-w-xs">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRecoveryObligation(true);
+                        setAcknowledged(false);
+                      }}
+                      className={
+                        recoveryObligation === true
+                          ? "rounded-lg bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground ring-1 ring-primary/50"
+                          : "rounded-lg bg-secondary/30 px-3 py-2.5 text-sm font-medium text-muted-foreground ring-1 ring-border"
+                      }
+                    >
+                      Yes
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRecoveryObligation(false);
+                        setAcknowledged(false);
+                      }}
+                      className={
+                        recoveryObligation === false
+                          ? "rounded-lg bg-warning px-3 py-2.5 text-sm font-semibold text-warning-foreground ring-1 ring-warning/50"
+                          : "rounded-lg bg-secondary/30 px-3 py-2.5 text-sm font-medium text-muted-foreground ring-1 ring-border"
+                      }
+                    >
+                      No
+                    </button>
+                  </div>
+                </div>
+
+                {recoveryObligation !== null ? (
+                  <div className="mt-4 flex flex-col items-center gap-3 rounded-xl bg-field/60 px-4 py-4 text-center ring-1 ring-border">
+                    <p className="font-mono text-[11px] tracking-[0.2em] text-warning uppercase">
+                      Reminder
+                    </p>
+                    <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
+                      {recoveryObligation
+                        ? "Recovery obligation is available — advise the crew member of the recovery obligation and document it before continuing."
+                        : "No recovery obligation available — document that no recovery obligation applies before continuing."}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setAckDialogOpen(true)}
+                      className={
+                        acknowledged
+                          ? "rounded-lg bg-primary/20 px-4 py-2 font-mono text-xs font-semibold text-primary uppercase ring-1 ring-primary/50"
+                          : "rounded-lg bg-primary px-4 py-2 font-mono text-xs font-semibold text-primary-foreground uppercase ring-1 ring-primary/50 transition-transform hover:-translate-y-px"
+                      }
+                    >
+                      {acknowledged ? "Acknowledged" : "Acknowledge / Done"}
+                    </button>
+                  </div>
+                ) : null}
+
                 {result.blockReason ? (
                   <div className="mt-3 flex items-start gap-3 rounded-lg bg-destructive/[0.08] px-3.5 py-3 ring-1 ring-destructive/30">
                     <span className="mt-0.5 shrink-0 font-mono text-sm font-bold text-destructive">
@@ -516,6 +693,7 @@ function Index() {
                   </div>
                 ) : null}
               </div>
+
             </div>
           </section>
 
@@ -548,7 +726,7 @@ function Index() {
                   </div>
                   <div className="rounded-lg bg-secondary/30 p-3 ring-1 ring-border">
                     <p className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
-                      Back to Duty
+                      Back for Duty
                     </p>
                     <p className="font-mono text-lg font-semibold">
                       {backForDutyDate} {backForDutyTime}
@@ -582,7 +760,7 @@ function Index() {
                           textShadow: "0 0 8px rgba(195, 0, 25, 0.7)",
                         }}
                       >
-                        Can Rejoin Next Sequence?
+                        Can Rejoin Sequence?
                       </span>
                       <button
                         type="button"
@@ -607,74 +785,46 @@ function Index() {
                         NO
                       </button>
                     </div>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-
-            {/* Conditions — each toggle adds its required entry below. */}
-            <div className="rounded-2xl bg-panel/40 p-5 ring-1 ring-border backdrop-blur-xl sm:p-6">
-              <div className="mb-4 flex items-center justify-between">
-                <p className="font-mono text-[11px] tracking-[0.2em] text-muted-foreground uppercase">
-                  Conditions
-                </p>
-                <span className="font-mono text-[11px] text-muted-foreground">
-                  {conditions.length} / {CONDITION_OPTIONS.length}
-                </span>
-              </div>
-              <div className="grid gap-2 rounded-xl bg-field/60 p-3 ring-1 ring-border sm:grid-cols-2">
-                {CONDITION_OPTIONS.map((option) => {
-                  const active = conditions.includes(option.id);
-                  return (
-                    <button
-                      key={option.id}
-                      type="button"
-                      aria-pressed={active}
-                      onClick={() => toggleCondition(option.id)}
-                      className={
-                        active
-                          ? "flex items-start gap-3 rounded-lg bg-primary/10 p-3 text-left ring-1 ring-primary/50 transition-colors"
-                          : "flex items-start gap-3 rounded-lg bg-secondary/20 p-3 text-left ring-1 ring-border transition-colors hover:bg-secondary/40"
-                      }
-                    >
-                      <span
-                        className={
-                          active
-                            ? "mt-0.5 grid size-5 shrink-0 place-items-center rounded bg-primary text-[11px] font-bold text-primary-foreground"
-                            : "mt-0.5 grid size-5 shrink-0 place-items-center rounded bg-secondary/50 text-[11px] text-muted-foreground ring-1 ring-border"
-                        }
-                      >
-                        {active ? "✓" : ""}
-                      </span>
-                      <span className="min-w-0">
-                        <span className="block text-sm font-medium">{option.label}</span>
-                        <span className="mt-0.5 block text-xs text-muted-foreground">
-                          {option.hint}
+                    {bidStatus === "RSV_FLYING" ? (
+                      <div className="mt-2 flex w-full items-center gap-2 border-t border-border pt-2">
+                        <span className="font-mono text-sm font-semibold tracking-wider uppercase">
+                          RAP Started
                         </span>
-                        <span
+                        <button
+                          type="button"
+                          onClick={() => setRapStarted(true)}
                           className={
-                            active
-                              ? "mt-1 inline-block font-mono text-[11px] text-primary"
-                              : "mt-1 inline-block font-mono text-[11px] text-muted-foreground"
+                            rapStarted === true
+                              ? "rounded-md bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground ring-1 ring-primary/50"
+                              : "rounded-md bg-secondary/40 px-3 py-1 text-xs font-semibold text-muted-foreground ring-1 ring-border transition-transform hover:-translate-y-px"
                           }
                         >
-                          {option.code}
-                        </span>
-                      </span>
-                    </button>
-                  );
-                })}
+                          YES
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setRapStarted(false)}
+                          className={
+                            rapStarted === false
+                              ? "rounded-md bg-warning px-3 py-1 text-xs font-semibold text-warning-foreground ring-1 ring-warning/50"
+                              : "rounded-md bg-secondary/40 px-3 py-1 text-xs font-semibold text-muted-foreground ring-1 ring-border transition-transform hover:-translate-y-px"
+                          }
+                        >
+                          NO
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+
               </div>
-              <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-                Each condition you turn on adds its entry to the Required Entries list below.
-              </p>
             </div>
 
-
+            {/* Entries and Steps — all entries and steps in one place. */}
             <div className="flex-1 rounded-2xl bg-panel/40 p-5 ring-1 ring-border backdrop-blur-xl sm:p-6">
               <div className="mb-4 flex items-center justify-between">
                 <p className="font-mono text-[11px] tracking-[0.2em] text-muted-foreground uppercase">
-                  Required Entries
+                  Entries and Steps
                 </p>
                 <div className="flex items-center gap-2">
                   <button
@@ -691,7 +841,7 @@ function Index() {
               <div className="divide-y divide-border rounded-xl bg-field/60 font-mono text-sm ring-1 ring-border">
                 {result.entries.length === 0 ? (
                   <p className="px-3.5 py-6 text-center text-xs text-muted-foreground">
-                    No entries — resolve the inputs above.
+                    No entries or steps — resolve the inputs above.
                   </p>
                 ) : (
                   result.entries.map((entry, i) => (
@@ -718,10 +868,11 @@ function Index() {
                 )}
               </div>
               <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-                Enter codes, dates and durations exactly as listed. Scenario re-computes on every
-                field change.
+                Enter codes, dates and durations exactly as listed. Steps re-compute on every field
+                change.
               </p>
             </div>
+
           </section>
         </div>
 
@@ -796,7 +947,30 @@ function Index() {
           <span className="max-w-[60ch] text-balance">Unofficial employee-developed tool. Not authorized or endorsed by American Airlines. Use at your own risk.</span>
         </footer>
       </div>
+
+      <AlertDialog open={ackDialogOpen} onOpenChange={setAckDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reminder acknowledged</AlertDialogTitle>
+            <AlertDialogDescription>
+              Would you like to clear the form and start a new fatigue event, or continue with
+              the current one?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                clearForm();
+              }}
+            >
+              Clear form
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => setAcknowledged(true)}>Continue</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
+
   );
 }
 
