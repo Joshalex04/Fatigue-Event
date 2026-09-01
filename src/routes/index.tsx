@@ -10,6 +10,9 @@ import {
   CSS_CALENDAR_URL,
   buildEntriesPlan,
   calculateFatigue,
+  ddmmToDdMmm,
+  dutyElapsed,
+  formatMinutes,
   planToText,
   parseHhmm,
   type BidStatus,
@@ -180,6 +183,31 @@ function Index() {
     if (si === null || tf === null) return null;
     return tf < si ? "Before Sign in" : "After Sign in";
   }, [signInTime, timeOfFatigue]);
+
+  // Duty Time: time of fatigue minus sign-in. Negative when fatigue is before
+  // sign-in; "NO DUTY" when fatigue falls after sign-in.
+  const dutyTimeDisplay = useMemo(() => {
+    const si = parseHhmm(signInTime.replace(/\D/g, ""));
+    const tf = parseHhmm(timeOfFatigue.replace(/\D/g, ""));
+    if (si === null || tf === null) return "--";
+    if (tf < si) return `-${formatMinutes(si - tf)}`;
+    return "NO DUTY";
+  }, [signInTime, timeOfFatigue]);
+
+  // Fatigue HRS: hours the pilot is fatigued — time of fatigue until back for duty.
+  const fatigueHrsDisplay = useMemo(() => {
+    const tf = parseHhmm(timeOfFatigue.replace(/\D/g, ""));
+    const bt = parseHhmm(backForDutyTime.replace(/\D/g, ""));
+    if (tf === null || bt === null) return "--";
+    return formatMinutes(dutyElapsed(tf, bt));
+  }, [timeOfFatigue, backForDutyTime]);
+
+  // Back-for-duty date as DDMMM (e.g. 01SEP).
+  const backForDutyDisplay = useMemo(() => {
+    const d = ddmmToDdMmm(backForDutyDate.replace(/\D/g, ""));
+    const t = backForDutyTime.replace(/\D/g, "");
+    return `${d ?? backForDutyDate}${t ? ` ${t}` : ""}`;
+  }, [backForDutyDate, backForDutyTime]);
 
   const plan = useMemo(
     () =>
