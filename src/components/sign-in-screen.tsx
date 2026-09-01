@@ -13,17 +13,12 @@ export function SignInScreen({
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    const digits = normalizePhone(phone);
     if (name.trim().length < 2) {
       setError("Enter your full name.");
       return;
     }
-    if (digits.length < 10) {
-      setError("Enter a valid phone number (at least 10 digits).");
-      return;
-    }
     setError(null);
-    onSignIn(name, digits);
+    onSignIn(name, normalizePhone(phone));
   };
 
   return (
@@ -40,18 +35,16 @@ export function SignInScreen({
         onSubmit={submit}
         className="relative w-full max-w-sm rounded-2xl bg-panel/50 p-6 ring-1 ring-border backdrop-blur-xl"
       >
-        <div className="mb-6 flex items-center gap-3">
+        <div className="mb-6 flex flex-col items-center text-center">
           <img
             src={fatigueLogoAsset.url}
             alt="Fatigue Event logo"
-            className="size-10 rounded-lg object-cover ring-1 ring-primary/30"
+            className="size-20 rounded-xl object-cover ring-1 ring-primary/30"
           />
-          <div>
-            <h1 className="font-mono text-lg font-semibold tracking-tight">Fatigue Event</h1>
-            <p className="font-mono text-[11px] tracking-[0.2em] text-muted-foreground uppercase">
-              Sign in
-            </p>
-          </div>
+          <h1 className="mt-3 font-mono text-xl font-semibold tracking-tight">Fatigue Event</h1>
+          <p className="mt-1 font-mono text-[11px] tracking-[0.2em] text-muted-foreground uppercase">
+            Sign in
+          </p>
         </div>
 
         <label className="block font-mono text-[11px] tracking-[0.15em] text-muted-foreground uppercase">
@@ -66,7 +59,7 @@ export function SignInScreen({
         />
 
         <label className="mt-4 block font-mono text-[11px] tracking-[0.15em] text-muted-foreground uppercase">
-          Phone Number
+          Phone Number · optional
         </label>
         <input
           className="mt-2 w-full rounded-lg bg-field px-3 py-2.5 font-mono text-base outline-none ring-1 ring-border focus:ring-2 focus:ring-primary/40"
@@ -88,8 +81,7 @@ export function SignInScreen({
           ENTER
         </button>
         <p className="mt-4 text-center text-[11px] leading-relaxed text-muted-foreground">
-          No password required. Your name and phone stay on this device and stamp the events you
-          save.
+          No password required. Your name stays on this device and stamps the events you save.
         </p>
       </form>
     </div>
