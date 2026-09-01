@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { formatPhone, normalizePhone } from "@/lib/session";
 import fatigueLogoAsset from "@/assets/fatigue-logo.jpg.asset.json";
 
 export function SignInScreen({
@@ -8,7 +7,6 @@ export function SignInScreen({
   onSignIn: (name: string, phone: string) => void;
 }) {
   const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const submit = (e: React.FormEvent) => {
@@ -18,7 +16,7 @@ export function SignInScreen({
       return;
     }
     setError(null);
-    onSignIn(name, normalizePhone(phone));
+    onSignIn(name, "");
   };
 
   return (
