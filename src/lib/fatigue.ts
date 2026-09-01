@@ -274,3 +274,183 @@ export function calculateFatigue(input: FatigueInput): FatigueResult {
 export function entriesToText(result: FatigueResult): string {
   return result.entries.map((e, i) => `${i + 1}. ${e.code}  ${e.value}`).join("\n");
 }
+
+/* ------------------------------------------------------------------ */
+/* Entries & Steps engine                                              */
+/* ------------------------------------------------------------------ */
+
+export type EntryKey =
+  | "REMOVE_SEQUENCE"
+  | "INPUT_ABSENCE"
+  | "MODIFY_SEQUENCE"
+  | "MODIFY_RAP"
+  | "REMOVE_RAP"
+  | "SET_ABSENCE"
+  | "ASSIGN_RAP"
+  | "ASSIGN_SEQUENCE";
+
+export const ENTRY_DEFS: Record<EntryKey, { label: string; template: string }> = {
+  REMOVE_SEQUENCE: { label: "Remove Sequence", template: "2G/EMP#/SEQNUM/DT/FT" },
+  INPUT_ABSENCE: { label: "Input Absence", template: "A4/EMP#/FT/DT/DT//TM/TM" },
+  MODIFY_SEQUENCE: { label: "Modify Sequence", template: "HE/SEQ/DT/25/MI" },
+  MODIFY_RAP: { label: "Modify RAP", template: "HYR(V)/EMP#/SDT/EDT//STIME/ETIME" },
+  REMOVE_RAP: { label: "Remove RAP", template: "HYR(V)/EMP#/SDT/STM//R" },
+  SET_ABSENCE: { label: "Set Absence", template: "A4/EMP#/FT/DT/DT///ETM" },
+  ASSIGN_RAP: { label: "Assign RAP", template: "HYR/EMP#/DT//RAP TIME" },
+  ASSIGN_SEQUENCE: { label: "Assign Sequence", template: "HU/EMP#/SEQNUM/DT/FT" },
+};
+
+export const STEP_TEXTS: Record<number, string> = {
+  1: "Go to https://css.aa.com/cme/calendarview — click on RFW.",
+  2: "Select I'm Done.",
+  3: "Click on the Fatigue Red Puck, open Sequence Look.",
+  4: "Any Recovery Flying? Answer using the buttons — Yes shows step 5, No shows step 6.",
+  5: "Click on RFW, and select I am Done.",
+  6: "Assign best solution: add a sequence (entry: Assign Sequence).",
+  7: "Assign a RAP (entry: Assign RAP).",
+  8: "If Long Call RSV, it may be converted to Short Call.",
+};
+
+export interface PlanInput {
+  bidStatus: BidStatus;
+  /** Time of fatigue before sign-in time. */
+  priorSignIn: boolean | null;
+  rejoinSequence: boolean | null;
+  rapStarted: boolean | null;
+  recoveryFlying: boolean | null;
+  employeeNumber: string;
+  sequenceNumber: string;
+  /** ddmm */
+  sequenceDate: string;
+  /** ddmm */
+  eventDate: string;
+  /** hhmm */
+  timeOfFatigue: string;
+  /** hhmm */
+  signInTime: string;
+}
+
+export interface PlanEntry {
+  key: EntryKey;
+  label: string;
+  code: string;
+}
+
+export interface PlanStep {
+  n: number;
+  text: string;
+}
+
+export interface EntriesPlan {
+  ready: boolean;
+  pending: string[];
+  entries: PlanEntry[];
+  steps: PlanStep[];
+  notes: string[];
+}
+
+function fillTemplate(key: EntryKey, input: PlanInput): string {
+  const emp = input.employeeNumber.trim() || "EMP#";
+  const seq = input.sequenceNumber.trim() || "SEQNUM";
+  const dt = input.eventDate || "DT";
+  const sdt = input.sequenceDate || "SDT";
+  const ft = input.timeOfFatigue || "FT";
+  const stm = input.signInTime || "STM";
+  switch (key) {
+    case "REMOVE_SEQUENCE":
+      return `2G/${emp}/${seq}/${dt}/FT`;
+    case "INPUT_ABSENCE":
+      return `A4/${emp}/FT/${dt}/${dt}//TM/TM`;
+    case "MODIFY_SEQUENCE":
+      return `HE/${seq}/${dt}/25/MI`;
+    case "MODIFY_RAP":
+      return `HYR(V)/${emp}/${sdt}/EDT//STIME/ETIME`;
+    case "REMOVE_RAP":
+      return `HYR(V)/${emp}/${sdt}/${stm}//R`;
+    case "SET_ABSENCE":
+      return `A4/${emp}/FT/${dt}/${dt}///ETM`;
+    case "ASSIGN_RAP":
+      return `HYR/${emp}/${dt}//RAP TIME`;
+    case "ASSIGN_SEQUENCE":
+      return `HU/${emp}/${seq}/${dt}/FT`;
+  }
+}
+
+function entry(key: EntryKey, input: PlanInput): PlanEntry {
+  return { key, label: ENTRY_DEFS[key].label, code: fillTemplate(key, input) };
+}
+
+function stepsOf(nums: number[]): PlanStep[] {
+  return nums.map((n) => ({ n, text: STEP_TEXTS[n] ?? "" }));
+}
+
+/** Build the labeled entries and ordered steps for the current scenario. */
+export function buildEntriesPlan(input: PlanInput): EntriesPlan {
+  const pending: string[] = [];
+  const notes: string[] = [];
+  let entries: PlanEntry[] = [];
+  let steps: PlanStep[] = [];
+
+  if (input.priorSignIn === null) {
+    pending.push("Enter a valid sign-in time and time of fatigue.");
+    return { ready: false, pending, entries, steps, notes };
+  }
+  if (!input.priorSignIn) {
+    pending.push("After sign-in scenario steps are not defined yet — prior sign-in rules shown only.");
+    return { ready: false, pending, entries, steps, notes };
+  }
+  if (input.rejoinSequence === null) {
+    pending.push("Answer “Can Rejoin Sequence?” to generate the entries and steps.");
+    return { ready: false, pending, entries, steps, notes };
+  }
+
+  if (input.rejoinSequence) {
+    // All scenarios — pilot can rejoin the sequence.
+    entries = [entry("MODIFY_SEQUENCE", input), entry("SET_ABSENCE", input)];
+    steps = stepsOf([1, 2]);
+    if (input.bidStatus === "RSV_FLYING") {
+      if (input.rapStarted === null) {
+        pending.push("Answer “RAP Started” to complete the entries.");
+      } else {
+        entries.push(entry(input.rapStarted ? "MODIFY_RAP" : "REMOVE_RAP", input));
+      }
+    }
+  } else if (input.bidStatus === "RSV_FLYING") {
+    // RSV Flying — cannot rejoin.
+    entries = [
+      entry("REMOVE_SEQUENCE", input),
+      entry("SET_ABSENCE", input),
+      entry("ASSIGN_RAP", input),
+    ];
+    steps = stepsOf([1, 2, 7]);
+    notes.push("Assign a RAP — if Long Call, it may be converted to Short Call.");
+  } else if (input.bidStatus === "RSV_PR_OG") {
+    entries = [entry("REMOVE_SEQUENCE", input), entry("INPUT_ABSENCE", input)];
+    steps = stepsOf([1, 2]);
+  } else {
+    // Line Holder — cannot rejoin.
+    entries = [entry("REMOVE_SEQUENCE", input), entry("INPUT_ABSENCE", input)];
+    if (input.recoveryFlying === null) {
+      steps = stepsOf([1, 3, 4]);
+      pending.push("Answer “Any Recovery Flying?” to complete the steps.");
+    } else if (input.recoveryFlying) {
+      steps = stepsOf([1, 3, 4, 5]);
+    } else {
+      entries.push(entry("ASSIGN_SEQUENCE", input));
+      steps = stepsOf([1, 3, 4, 6, 2]);
+    }
+  }
+
+  return { ready: pending.length === 0, pending, entries, steps, notes };
+}
+
+export function planToText(plan: EntriesPlan): string {
+  const lines: string[] = ["ENTRIES"];
+  plan.entries.forEach((e, i) => lines.push(`${i + 1}. ${e.label}: ${e.code}`));
+  if (plan.steps.length > 0) {
+    lines.push("", "STEPS");
+    plan.steps.forEach((s) => lines.push(`${s.n}. ${s.text}`));
+  }
+  plan.notes.forEach((n) => lines.push("", `NOTE: ${n}`));
+  return lines.join("\n");
+}
