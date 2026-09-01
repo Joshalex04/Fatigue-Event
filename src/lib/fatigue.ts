@@ -341,6 +341,10 @@ export interface PlanInput {
   timeOfFatigue: string;
   /** hhmm */
   signInTime: string;
+  /** ddmm */
+  backForDutyDate: string;
+  /** hhmm */
+  backForDutyTime: string;
 }
 
 export interface PlanEntry {
