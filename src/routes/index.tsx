@@ -119,9 +119,6 @@ function Index() {
   const [backForDutyDate, setBackForDutyDate] = useState("05/12");
   const [backForDutyTime, setBackForDutyTime] = useState("0730");
   const [femCompleted, setFemCompleted] = useState(false);
-  const [recoveryObligation, setRecoveryObligation] = useState<boolean | null>(null);
-  const [acknowledged, setAcknowledged] = useState(false);
-  const [ackDialogOpen, setAckDialogOpen] = useState(false);
   const [conditions, setConditions] = useState<ConditionId[]>([]);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [eventCalendarOpen, setEventCalendarOpen] = useState(false);
@@ -249,7 +246,7 @@ function Index() {
       backForDutyDate,
       backForDutyTime,
       femCompleted,
-      recoveryObligation,
+      
       conditions,
       rejoinSequence,
       rapStarted,
@@ -276,7 +273,7 @@ function Index() {
     setBackForDutyDate(record.backForDutyDate);
     setBackForDutyTime(record.backForDutyTime);
     setFemCompleted(record.femCompleted);
-    setRecoveryObligation(record.recoveryObligation ?? null);
+    
     setAcknowledged(false);
     setConditions(record.conditions ?? []);
     setRejoinSequence(record.rejoinSequence ?? null);
