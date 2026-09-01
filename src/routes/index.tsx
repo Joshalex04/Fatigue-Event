@@ -941,7 +941,30 @@ function Index() {
           <span className="max-w-[60ch] text-balance">Unofficial employee-developed tool. Not authorized or endorsed by American Airlines. Use at your own risk.</span>
         </footer>
       </div>
+
+      <AlertDialog open={ackDialogOpen} onOpenChange={setAckDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reminder acknowledged</AlertDialogTitle>
+            <AlertDialogDescription>
+              Would you like to clear the form and start a new fatigue event, or continue with
+              the current one?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                clearForm();
+              }}
+            >
+              Clear form
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => setAcknowledged(true)}>Continue</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
+
   );
 }
 
