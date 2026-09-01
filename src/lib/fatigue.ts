@@ -319,9 +319,9 @@ export const STEP_TEXTS: Record<number, string> = {
   1: `Go to ${CSS_CALENDAR_URL} — click on RFW.`,
   2: "Select I'm Done.",
   3: "Click on the Fatigue Red Puck, open Sequence Look.",
-  4: "Any Recovery Flying?",
+  4: "",
   5: "Click on RFW, and select I am Done.",
-  6: "Assign best solution.",
+  6: "Assign best Solution. HU/EMP#/SEQ#/DATE/FT.",
   7: "Assign a RAP (entry: Assign RAP).",
   8: "If Long Call RSV, it may be converted to Short Call.",
 };

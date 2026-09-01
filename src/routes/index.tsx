@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import fatigueLogoAsset from "@/assets/fatigue-logo.jpg.asset.json";
+import skyBgAsset from "@/assets/sky-bg.jpg.asset.json";
 import { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import { CalendarIcon, Trash2 } from "lucide-react";
