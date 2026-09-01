@@ -308,6 +308,7 @@ function Index() {
     setConditions([]);
     setRejoinSequence(null);
     setRapStarted(null);
+    setRecoveryFlying(null);
     setCopied(false);
     setJustSaved(false);
   };
@@ -850,6 +851,33 @@ function Index() {
                         </button>
                       </div>
                     ) : null}
+                    <div className="mt-2 flex w-full items-center gap-2 border-t border-border pt-2">
+                      <span className="font-mono text-sm font-semibold tracking-wider uppercase">
+                        Any Recovery Flying?
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setRecoveryFlying(true)}
+                        className={
+                          recoveryFlying === true
+                            ? "rounded-md bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground ring-1 ring-primary/50"
+                            : "rounded-md bg-secondary/40 px-3 py-1 text-xs font-semibold text-muted-foreground ring-1 ring-border transition-transform hover:-translate-y-px"
+                        }
+                      >
+                        YES
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRecoveryFlying(false)}
+                        className={
+                          recoveryFlying === false
+                            ? "rounded-md bg-warning px-3 py-1 text-xs font-semibold text-warning-foreground ring-1 ring-warning/50"
+                            : "rounded-md bg-secondary/40 px-3 py-1 text-xs font-semibold text-muted-foreground ring-1 ring-border transition-transform hover:-translate-y-px"
+                        }
+                      >
+                        NO
+                      </button>
+                    </div>
                   </div>
                 ) : null}
 
