@@ -628,6 +628,9 @@ function Index() {
                     />
                     <span className="font-mono text-xs text-muted-foreground">HHMM</span>
                   </div>
+                  <p className="mt-1.5 font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
+                    Date = Event Date · {eventDate}
+                  </p>
                 </div>
                 <div>
                   <label className={labelCls} htmlFor="signin">
@@ -780,7 +783,7 @@ function Index() {
                       Back for Duty
                     </p>
                     <p className="font-mono text-lg font-semibold">
-                      {backForDutyDate} {backForDutyTime}
+                      {backForDutyDisplay}
                     </p>
                   </div>
                 </div>
