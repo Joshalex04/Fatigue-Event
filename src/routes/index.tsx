@@ -536,6 +536,31 @@ function Index() {
                       onChange={(e) => setSequenceDate(formatDdMmSlash(e.target.value))}
                     />
                     <span className="font-mono text-xs text-muted-foreground">dd/mm</span>
+                    <span className="h-4 w-px bg-border" />
+                    <Popover open={sequenceCalendarOpen} onOpenChange={setSequenceCalendarOpen}>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          aria-label="Pick sequence date from calendar"
+                          className="grid size-7 shrink-0 place-items-center rounded-md text-primary transition-colors hover:bg-primary/10"
+                        >
+                          <CalendarIcon className="size-4" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="end">
+                        <Calendar
+                          mode="single"
+                          selected={parseDdmm(sequenceDate)}
+                          onSelect={(date) => {
+                            if (!date) return;
+                            setSequenceDate(format(date, "dd/MM"));
+                            setSequenceCalendarOpen(false);
+                          }}
+                          initialFocus
+                          className="p-3 pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 </div>
               </div>
