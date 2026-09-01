@@ -17,8 +17,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   BID_STATUS_OPTIONS,
+  buildEntriesPlan,
   calculateFatigue,
-  entriesToText,
+  planToText,
   parseHhmm,
   type BidStatus,
   type ConditionId,
@@ -104,6 +105,7 @@ interface SavedEvent {
   entries: string;
   rejoinSequence: boolean | null;
   rapStarted?: boolean | null;
+  recoveryFlying?: boolean | null;
 }
 
 const STORAGE_KEY = "fatigue-events-v1";
@@ -138,6 +140,7 @@ function Index() {
   const [justSaved, setJustSaved] = useState(false);
   const [rejoinSequence, setRejoinSequence] = useState<boolean | null>(null);
   const [rapStarted, setRapStarted] = useState<boolean | null>(null);
+  const [recoveryFlying, setRecoveryFlying] = useState<boolean | null>(null);
 
 
 
@@ -189,10 +192,41 @@ function Index() {
     return tf < si ? "Before Sign in" : "After Sign in";
   }, [signInTime, timeOfFatigue]);
 
+  const plan = useMemo(
+    () =>
+      buildEntriesPlan({
+        bidStatus,
+        priorSignIn:
+          fatigueRelative === null ? null : fatigueRelative === "Before Sign in",
+        rejoinSequence,
+        rapStarted,
+        recoveryFlying,
+        employeeNumber,
+        sequenceNumber,
+        sequenceDate: sequenceDate.replace(/\D/g, ""),
+        eventDate: eventDate.replace(/\D/g, ""),
+        timeOfFatigue: timeOfFatigue.replace(/\D/g, ""),
+        signInTime: signInTime.replace(/\D/g, ""),
+      }),
+    [
+      bidStatus,
+      fatigueRelative,
+      rejoinSequence,
+      rapStarted,
+      recoveryFlying,
+      employeeNumber,
+      sequenceNumber,
+      sequenceDate,
+      eventDate,
+      timeOfFatigue,
+      signInTime,
+    ],
+  );
+
   const recalcKey = `${bidStatus}${timeOfFatigue}${signInTime}${backForDutyDate}${backForDutyTime}${femCompleted}${conditions.join(",")}`;
 
   const copy = async () => {
-    await navigator.clipboard.writeText(entriesToText(result));
+    await navigator.clipboard.writeText(planToText(plan));
     setCopied(true);
     setTimeout(() => setCopied(false), 1600);
   };
@@ -223,10 +257,11 @@ function Index() {
       conditions,
       rejoinSequence,
       rapStarted,
+      recoveryFlying,
       payHours: result.payHours,
       eventNumber: result.eventNumber,
       status: result.status,
-      entries: entriesToText(result),
+      entries: planToText(plan),
     };
     persist([record, ...saved].slice(0, 100));
     setJustSaved(true);
@@ -250,6 +285,7 @@ function Index() {
     setConditions(record.conditions ?? []);
     setRejoinSequence(record.rejoinSequence ?? null);
     setRapStarted(record.rapStarted ?? null);
+    setRecoveryFlying(record.recoveryFlying ?? null);
   };
 
   const remove = (id: string) => persist(saved.filter((r) => r.id !== id));
@@ -272,6 +308,7 @@ function Index() {
     setConditions([]);
     setRejoinSequence(null);
     setRapStarted(null);
+    setRecoveryFlying(null);
     setCopied(false);
     setJustSaved(false);
   };
@@ -814,6 +851,33 @@ function Index() {
                         </button>
                       </div>
                     ) : null}
+                    <div className="mt-2 flex w-full items-center gap-2 border-t border-border pt-2">
+                      <span className="font-mono text-sm font-semibold tracking-wider uppercase">
+                        Any Recovery Flying?
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setRecoveryFlying(true)}
+                        className={
+                          recoveryFlying === true
+                            ? "rounded-md bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground ring-1 ring-primary/50"
+                            : "rounded-md bg-secondary/40 px-3 py-1 text-xs font-semibold text-muted-foreground ring-1 ring-border transition-transform hover:-translate-y-px"
+                        }
+                      >
+                        YES
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRecoveryFlying(false)}
+                        className={
+                          recoveryFlying === false
+                            ? "rounded-md bg-warning px-3 py-1 text-xs font-semibold text-warning-foreground ring-1 ring-warning/50"
+                            : "rounded-md bg-secondary/40 px-3 py-1 text-xs font-semibold text-muted-foreground ring-1 ring-border transition-transform hover:-translate-y-px"
+                        }
+                      >
+                        NO
+                      </button>
+                    </div>
                   </div>
                 ) : null}
 
@@ -830,7 +894,7 @@ function Index() {
                   <button
                     type="button"
                     onClick={copy}
-                    disabled={result.entries.length === 0}
+                    disabled={plan.entries.length === 0}
                     className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground ring-1 ring-primary/50 transition-transform hover:-translate-y-px disabled:opacity-40"
                   >
                     <span className="font-mono text-xs">{copied ? "COPIED" : "COPY"}</span>
@@ -838,38 +902,64 @@ function Index() {
                 </div>
               </div>
 
+              {plan.pending.map((msg) => (
+                <div
+                  key={msg}
+                  className="mb-3 flex items-start gap-3 rounded-lg bg-warning/[0.08] px-3.5 py-3 ring-1 ring-warning/30"
+                >
+                  <span className="mt-0.5 shrink-0 font-mono text-sm font-bold text-warning">
+                    !
+                  </span>
+                  <p className="text-sm leading-relaxed text-warning/90">{msg}</p>
+                </div>
+              ))}
+
               <div className="divide-y divide-border rounded-xl bg-field/60 font-mono text-sm ring-1 ring-border">
-                {result.entries.length === 0 ? (
+                {plan.entries.length === 0 ? (
                   <p className="px-3.5 py-6 text-center text-xs text-muted-foreground">
-                    No entries or steps — resolve the inputs above.
+                    No entries yet — resolve the inputs above.
                   </p>
                 ) : (
-                  result.entries.map((entry, i) => (
-                    <div key={entry.code} className="flex items-center gap-3 px-3.5 py-3">
-                      <span
-                        className={
-                          entry.tone === "warn"
-                            ? "grid size-6 shrink-0 place-items-center rounded bg-warning/15 text-xs font-semibold text-warning"
-                            : "grid size-6 shrink-0 place-items-center rounded bg-primary/15 text-xs font-semibold text-primary"
-                        }
-                      >
+                  plan.entries.map((e, i) => (
+                    <div key={e.key} className="flex items-center gap-3 px-3.5 py-3">
+                      <span className="grid size-6 shrink-0 place-items-center rounded bg-primary/15 text-xs font-semibold text-primary">
                         {i + 1}
                       </span>
-                      <span
-                        className={
-                          entry.tone === "warn" ? "font-medium text-warning" : "font-medium"
-                        }
-                      >
-                        {entry.code}
-                      </span>
-                      <span className="ml-auto text-muted-foreground">{entry.value}</span>
+                      <div className="min-w-0">
+                        <p className="text-[10px] tracking-wider text-muted-foreground uppercase">
+                          {e.label}
+                        </p>
+                        <p className="font-medium break-all">{e.code}</p>
+                      </div>
                     </div>
                   ))
                 )}
               </div>
+
+              {plan.steps.length > 0 ? (
+                <div className="mt-3 divide-y divide-border rounded-xl bg-field/60 text-sm ring-1 ring-border">
+                  {plan.steps.map((s) => (
+                    <div key={s.n} className="flex items-start gap-3 px-3.5 py-3">
+                      <span className="grid size-6 shrink-0 place-items-center rounded bg-accent/15 font-mono text-xs font-semibold text-accent">
+                        {s.n}
+                      </span>
+                      <p className="text-xs leading-relaxed text-muted-foreground">{s.text}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+
+              {plan.notes.map((n) => (
+                <p
+                  key={n}
+                  className="mt-3 rounded-lg bg-secondary/30 px-3.5 py-2.5 font-mono text-xs text-warning ring-1 ring-warning/30"
+                >
+                  {n}
+                </p>
+              ))}
               <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-                Enter codes, dates and durations exactly as listed. Steps re-compute on every field
-                change.
+                Enter codes, dates and durations exactly as listed. Entries and steps re-compute on
+                every field change.
               </p>
             </div>
 
