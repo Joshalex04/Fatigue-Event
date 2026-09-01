@@ -273,8 +273,6 @@ function Index() {
     setBackForDutyDate(record.backForDutyDate);
     setBackForDutyTime(record.backForDutyTime);
     setFemCompleted(record.femCompleted);
-    
-    setAcknowledged(false);
     setConditions(record.conditions ?? []);
     setRejoinSequence(record.rejoinSequence ?? null);
     setRapStarted(record.rapStarted ?? null);
@@ -295,9 +293,6 @@ function Index() {
     setBackForDutyDate("");
     setBackForDutyTime("");
     setFemCompleted(false);
-    setRecoveryObligation(null);
-    setAcknowledged(false);
-    setAckDialogOpen(false);
     setConditions([]);
     setRejoinSequence(null);
     setRapStarted(null);
