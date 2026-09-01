@@ -548,7 +548,7 @@ function Index() {
                   </div>
                   <div className="rounded-lg bg-secondary/30 p-3 ring-1 ring-border">
                     <p className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
-                      Back to Duty
+                      Back for Duty
                     </p>
                     <p className="font-mono text-lg font-semibold">
                       {backForDutyDate} {backForDutyTime}
@@ -582,7 +582,7 @@ function Index() {
                           textShadow: "0 0 8px rgba(195, 0, 25, 0.7)",
                         }}
                       >
-                        Can Rejoin Next Sequence?
+                        Can Rejoin Sequence?
                       </span>
                       <button
                         type="button"
@@ -607,8 +607,38 @@ function Index() {
                         NO
                       </button>
                     </div>
+                    {bidStatus === "RSV_FLYING" ? (
+                      <div className="mt-2 flex w-full items-center gap-2 border-t border-border pt-2">
+                        <span className="font-mono text-sm font-semibold tracking-wider uppercase">
+                          RAP Started
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setRapStarted(true)}
+                          className={
+                            rapStarted === true
+                              ? "rounded-md bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground ring-1 ring-primary/50"
+                              : "rounded-md bg-secondary/40 px-3 py-1 text-xs font-semibold text-muted-foreground ring-1 ring-border transition-transform hover:-translate-y-px"
+                          }
+                        >
+                          YES
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setRapStarted(false)}
+                          className={
+                            rapStarted === false
+                              ? "rounded-md bg-warning px-3 py-1 text-xs font-semibold text-warning-foreground ring-1 ring-warning/50"
+                              : "rounded-md bg-secondary/40 px-3 py-1 text-xs font-semibold text-muted-foreground ring-1 ring-border transition-transform hover:-translate-y-px"
+                          }
+                        >
+                          NO
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
                 ) : null}
+
               </div>
             </div>
 
