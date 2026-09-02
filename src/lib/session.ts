@@ -3,17 +3,16 @@ import { useCallback, useEffect, useState } from "react";
 export interface AppUser {
   name: string;
   phone: string;
+  equipment: string[];
   signedInAt: string;
 }
 
 const SESSION_KEY = "fatigue-session-v1";
 
-/** Normalize a phone number to digits only (max 15, E.164-ish length). */
 export function normalizePhone(value: string) {
   return value.replace(/\D/g, "").slice(0, 15);
 }
 
-/** Display helper: (305) 555-1234 for 10-digit US numbers, raw digits otherwise. */
 export function formatPhone(value: string) {
   const d = normalizePhone(value);
   if (d.length !== 10) return d;
@@ -27,17 +26,26 @@ export function useSession() {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(SESSION_KEY);
-      if (raw) setUser(JSON.parse(raw) as AppUser);
+      if (raw) {
+        const parsed = JSON.parse(raw) as Partial<AppUser>;
+        setUser({
+          name: parsed.name ?? "",
+          phone: parsed.phone ?? "",
+          equipment: Array.isArray(parsed.equipment) ? parsed.equipment : [],
+          signedInAt: parsed.signedInAt ?? new Date().toISOString(),
+        });
+      }
     } catch {
       /* ignore corrupt storage */
     }
     setHydrated(true);
   }, []);
 
-  const signIn = useCallback((name: string, phone: string) => {
+  const signIn = useCallback((name: string, equipment: string[]) => {
     const next: AppUser = {
       name: name.trim(),
-      phone: normalizePhone(phone),
+      phone: "",
+      equipment,
       signedInAt: new Date().toISOString(),
     };
     setUser(next);

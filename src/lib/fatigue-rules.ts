@@ -121,15 +121,16 @@ export const FATIGUE_RULES: FatigueRule[] = [
     label: "RSV Flying · cannot rejoin · assign RAP",
     when: { priorSignIn: true, rejoinSequence: false, bidStatus: "RSV_FLYING" },
     entries: ["ASSIGN_RAP"],
+    steps: [7],
     notes: ["Assign a RAP — if Long Call, it may be converted to Short Call."],
   },
   {
     id: "PRIOR-REJOIN-NO-RECOVERY-YES",
     label: "Cannot rejoin · recovery flying available",
     when: { priorSignIn: true, rejoinSequence: false, recoveryFlying: true },
-    entries: ["ASSIGN_SEQUENCE"],
     steps: [6, 2],
   },
+
   {
     id: "PRIOR-REJOIN-NO-RECOVERY-NO",
     label: "Cannot rejoin · no recovery flying",
