@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import fatigueLogoAsset from "@/assets/fatigue-logo.jpg.asset.json";
 import skyBgAsset from "@/assets/sky-bg.jpg.asset.json";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { format } from "date-fns";
 import { CalendarIcon, Trash2 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
@@ -14,6 +14,7 @@ import { AdminSuggestions } from "@/components/admin-suggestions";
 import {
   BID_STATUS_OPTIONS,
   CSS_CALENDAR_URL,
+  CSS_CREW_URL,
   buildEntriesPlan,
   calculateFatigue,
   ddmmToDdMmm,
@@ -40,6 +41,13 @@ export const Route = createFileRoute("/")({
         property: "og:description",
         content:
           "Calculate airline crew fatigue events and generate the required scheduling and pay entries.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Fatigue Event Calculator | Crew Ops" },
+      {
+        name: "twitter:description",
+        content: "Generate airline fatigue-event entries and workflow steps from crew inputs.",
       },
     ],
   }),
@@ -82,6 +90,31 @@ function parseDdmm(ddmm: string): Date | undefined {
 
 const AIRPORT_BASES = ["MIA", "LAX", "DCA", "DFW", "ORD", "PHL", "PHX", "CLT", "LGA", "BOS"];
 
+function stepTextWithLink(text: string): ReactNode {
+  const url = text.includes(CSS_CALENDAR_URL)
+    ? CSS_CALENDAR_URL
+    : text.includes(CSS_CREW_URL)
+      ? CSS_CREW_URL
+      : null;
+  if (!url) return text;
+  const [before, after = ""] = text.split(url);
+  return (
+    <>
+      {before}
+      <a
+        href={url}
+        target="_blank"
+        rel="noreferrer"
+        className="text-primary underline underline-offset-2 hover:text-primary/80"
+      >
+        {url}
+      </a>
+      {after}
+    </>
+  );
+}
+
+
 interface SavedEvent {
   id: string;
   savedAt: string;
@@ -106,12 +139,14 @@ interface SavedEvent {
   rejoinSequence: boolean | null;
   rapStarted?: boolean | null;
   recoveryFlying?: boolean | null;
+  equipment?: string;
 }
 
 const STORAGE_KEY = "fatigue-events-v1";
 
 function Index() {
   const { hydrated, user, signIn, signOut } = useSession();
+  const [selectedEquipment, setSelectedEquipment] = useState("");
   const [bidStatus, setBidStatus] = useState<BidStatus>("RSV_PR_OG");
   const [splash, setSplash] = useState(false);
   const [schedulerName, setSchedulerName] = useState(() => {
@@ -141,8 +176,7 @@ function Index() {
   const [rejoinSequence, setRejoinSequence] = useState<boolean | null>(null);
   const [rapStarted, setRapStarted] = useState<boolean | null>(null);
   const [recoveryFlying, setRecoveryFlying] = useState<boolean | null>(null);
-
-
+  const [reminderVisible, setReminderVisible] = useState(false);
 
   useEffect(() => {
     try {
@@ -192,23 +226,16 @@ function Index() {
     return tf < si ? "Before Sign in" : "After Sign in";
   }, [signInTime, timeOfFatigue]);
 
-  // Duty Time: time of fatigue minus sign-in. Negative when fatigue is before
-  // sign-in; "NO DUTY" when fatigue falls after sign-in.
+  // Duty runs from sign-in until fatigue. A fatigue call before sign-in is no duty.
   const dutyTimeDisplay = useMemo(() => {
     const si = parseHhmm(signInTime.replace(/\D/g, ""));
     const tf = parseHhmm(timeOfFatigue.replace(/\D/g, ""));
     if (si === null || tf === null) return "--";
-    if (tf < si) return `-${formatMinutes(si - tf)}`;
-    return "NO DUTY";
+    return tf < si ? "NO DUTY" : formatMinutes(tf - si);
   }, [signInTime, timeOfFatigue]);
 
   // Fatigue HRS: hours the pilot is fatigued — time of fatigue until back for duty.
-  const fatigueHrsDisplay = useMemo(() => {
-    const tf = parseHhmm(timeOfFatigue.replace(/\D/g, ""));
-    const bt = parseHhmm(backForDutyTime.replace(/\D/g, ""));
-    if (tf === null || bt === null) return "--";
-    return formatMinutes(dutyElapsed(tf, bt));
-  }, [timeOfFatigue, backForDutyTime]);
+  const fatigueHrsDisplay = result.fatigueHours;
 
   // Back-for-duty date as DDMMM (e.g. 01SEP).
   const backForDutyDisplay = useMemo(() => {
@@ -234,6 +261,8 @@ function Index() {
         signInTime: signInTime.replace(/\D/g, ""),
         backForDutyDate: backForDutyDate.replace(/\D/g, ""),
         backForDutyTime: backForDutyTime.replace(/\D/g, ""),
+        airportBase,
+        equipment: selectedEquipment,
       }),
     [
       bidStatus,
@@ -249,10 +278,19 @@ function Index() {
       signInTime,
       backForDutyDate,
       backForDutyTime,
+      airportBase,
+      selectedEquipment,
     ],
   );
 
-  const recalcKey = `${bidStatus}${timeOfFatigue}${signInTime}${backForDutyDate}${backForDutyTime}${femCompleted}${conditions.join(",")}`;
+  const recalcKey = `${bidStatus}${eventDate}${airportBase}${employeeNumber}${sequenceNumber}${sequenceDate}${timeOfFatigue}${signInTime}${backForDutyDate}${backForDutyTime}${femCompleted}${rejoinSequence}${rapStarted}${recoveryFlying}${selectedEquipment}${conditions.join(",")}`;
+
+  useEffect(() => {
+    setReminderVisible(false);
+    if (!plan.ready || plan.entries.length === 0 || result.blocked) return;
+    const timer = window.setTimeout(() => setReminderVisible(true), 120_000);
+    return () => window.clearTimeout(timer);
+  }, [plan.ready, plan.entries.length, result.blocked, recalcKey]);
 
   const copy = async () => {
     // Copy only the entry codes, one per line (e.g. HE/5555/01/25/MI).
@@ -288,6 +326,7 @@ function Index() {
       rejoinSequence,
       rapStarted,
       recoveryFlying,
+      equipment: selectedEquipment,
       payHours: result.payHours,
       eventNumber: result.eventNumber,
       status: result.status,
@@ -346,22 +385,32 @@ function Index() {
         ? "text-warning"
         : "text-destructive";
 
+  const signOutAndClear = () => {
+    clearForm();
+    setSchedulerName("");
+    setSelectedEquipment("");
+    try {
+      localStorage.removeItem("fatigue-scheduler-name");
+    } catch {
+      /* ignore */
+    }
+    signOut();
+  };
 
   if (!hydrated) return null;
   if (!user) {
     return (
       <SignInScreen
-        onSignIn={(name, phone) => {
-          signIn(name, phone);
-          setSplash(true);
-          if (!schedulerName.trim()) {
-            setSchedulerName(name.trim());
-            try {
-              localStorage.setItem("fatigue-scheduler-name", name.trim());
-            } catch {
-              /* ignore */
-            }
+        onSignIn={(name, equipment) => {
+          signIn(name, equipment);
+          setSchedulerName(name.trim());
+          setSelectedEquipment(equipment[0] ?? "");
+          try {
+            localStorage.setItem("fatigue-scheduler-name", name.trim());
+          } catch {
+            /* ignore */
           }
+          setSplash(true);
         }}
       />
     );
@@ -436,9 +485,28 @@ function Index() {
                 }}
               />
             </div>
+            <div className="flex items-center gap-2 rounded-md bg-secondary/40 px-3 py-1.5 ring-1 ring-border">
+              <span className="text-muted-foreground">EQ</span>
+              {user.equipment.length > 1 ? (
+                <select
+                  aria-label="Equipment for this fatigue event"
+                  className="w-16 bg-transparent font-mono text-foreground outline-none"
+                  value={selectedEquipment}
+                  onChange={(e) => setSelectedEquipment(e.target.value)}
+                >
+                  {user.equipment.map((equipment) => (
+                    <option key={equipment} value={equipment} className="bg-background">
+                      {equipment}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <span className="font-mono text-foreground">{user.equipment[0] ?? "—"}</span>
+              )}
+            </div>
             <button
               type="button"
-              onClick={signOut}
+              onClick={signOutAndClear}
               className="rounded-md bg-secondary/40 px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase ring-1 ring-border transition-transform hover:-translate-y-px"
             >
               Sign out
@@ -570,7 +638,7 @@ function Index() {
                       placeholder="0000"
                       className={`${fieldInput} placeholder:text-muted-foreground/50`}
                       value={sequenceNumber}
-                      onChange={(e) => setSequenceNumber(e.target.value.toUpperCase().slice(0, 10))}
+                      onChange={(e) => setSequenceNumber(digits(e.target.value, 10))}
                     />
                   </div>
                 </div>
@@ -776,14 +844,14 @@ function Index() {
                       Duty Time
                     </p>
                     <p className="font-mono text-lg font-semibold text-primary">
-                      {result.eventNumber}
+                      {dutyTimeDisplay}
                     </p>
                   </div>
                   <div className="rounded-lg bg-secondary/30 p-3 ring-1 ring-border">
                     <p className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
                       Fatigue HRS
                     </p>
-                    <p className="font-mono text-lg font-semibold">{result.payHours}</p>
+                    <p className="font-mono text-lg font-semibold">{fatigueHrsDisplay}</p>
                   </div>
                   <div className="rounded-lg bg-secondary/30 p-3 ring-1 ring-border">
                     <p className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
@@ -953,7 +1021,7 @@ function Index() {
                         <p className="text-[10px] tracking-wider text-muted-foreground uppercase">
                           {e.label}
                         </p>
-                        <p className="font-medium break-all">{e.code}</p>
+                        <p className="whitespace-pre-wrap font-medium break-all">{e.code}</p>
                       </div>
                     </div>
                   ))
@@ -968,22 +1036,7 @@ function Index() {
                         {String.fromCharCode(65 + idx)}
                       </span>
                       <p className="text-xs leading-relaxed text-muted-foreground">
-                        {s.text.includes(CSS_CALENDAR_URL) ? (
-                          <>
-                            {s.text.split(CSS_CALENDAR_URL)[0]}
-                            <a
-                              href={CSS_CALENDAR_URL}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-primary underline underline-offset-2 hover:text-primary/80"
-                            >
-                              {CSS_CALENDAR_URL}
-                            </a>
-                            {s.text.split(CSS_CALENDAR_URL)[1]}
-                          </>
-                        ) : (
-                          s.text
-                        )}
+                        {stepTextWithLink(s.text)}
                       </p>
                     </div>
                   ))}
@@ -1078,6 +1131,14 @@ function Index() {
           <AdminSuggestions />
         </div>
         </div>
+
+        {reminderVisible ? (
+          <div className="mt-5 rounded-xl bg-warning/[0.08] px-4 py-3 ring-1 ring-warning/35">
+            <p className="font-mono text-xs font-semibold text-warning">
+              {schedulerName.trim() || user.name}: After Fatigue Notify Pilot detailed Voice Message or Positive Contact
+            </p>
+          </div>
+        ) : null}
 
         <footer className="mt-6 flex flex-wrap items-center justify-between gap-2 font-mono text-[11px] text-muted-foreground">
           <span className="tracking-[0.2em] uppercase">Crew Scheduling</span>

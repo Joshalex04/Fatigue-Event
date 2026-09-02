@@ -112,6 +112,10 @@ export interface FatigueResult {
   scenarioId: string;
   scenarioTitle: string;
   eventNumber: string;
+  /** Duty from sign-in until the fatigue call, or NO DUTY if fatigue is earlier. */
+  dutyTime: string;
+  /** Fatigue duration from the fatigue call until back for duty. */
+  fatigueHours: string;
   payHours: string;
   status: "CLEAR" | "HOLD" | "BLOCKED";
   notes: string;
@@ -132,9 +136,14 @@ export function formatMinutes(total: number): string {
   return `${sign}${Math.floor(abs / 60)}:${String(abs % 60).padStart(2, "0")}`;
 }
 
-/** Minutes from sign-in to the fatigue call, rolling past midnight. */
+/** Minutes from sign-in to the fatigue call, preserving the actual clock order. */
 export function dutyElapsed(signIn: number, fatigue: number): number {
-  return fatigue >= signIn ? fatigue - signIn : fatigue + 1440 - signIn;
+  return fatigue >= signIn ? fatigue - signIn : 0;
+}
+
+/** Minutes between two clock times, rolling past midnight for rest windows. */
+function elapsedAcrossMidnight(start: number, end: number): number {
+  return end >= start ? end - start : end + 1440 - start;
 }
 
 interface Rule {
@@ -201,6 +210,8 @@ export function calculateFatigue(input: FatigueInput): FatigueResult {
       scenarioId: rule.id,
       scenarioTitle: rule.title,
       eventNumber: "--",
+      dutyTime: "--",
+      fatigueHours: "--",
       payHours: "--",
       status: "BLOCKED",
       notes: "Complete the Fatigue Event Management report, then re-run.",
@@ -216,6 +227,8 @@ export function calculateFatigue(input: FatigueInput): FatigueResult {
       scenarioId: rule.id,
       scenarioTitle: rule.title,
       eventNumber: "--",
+      dutyTime: "--",
+      fatigueHours: "--",
       payHours: "--",
       status: "BLOCKED",
       notes: "",
@@ -224,8 +237,9 @@ export function calculateFatigue(input: FatigueInput): FatigueResult {
   }
 
   const elapsed = dutyElapsed(signIn, fatigue);
-  const payMinutes = elapsed;
-  const restAvailable = dutyElapsed(fatigue, backTime);
+  const fatigueHours = elapsedAcrossMidnight(fatigue, backTime);
+  const payMinutes = fatigueHours;
+  const restAvailable = elapsedAcrossMidnight(fatigue, backTime);
   const restShort = restAvailable < rule.restFloor;
 
   const entries: EntryLine[] = [
@@ -264,6 +278,8 @@ export function calculateFatigue(input: FatigueInput): FatigueResult {
     scenarioId: rule.id,
     scenarioTitle: rule.title,
     eventNumber: rule.eventNumber,
+    dutyTime: fatigue < signIn ? "NO DUTY" : formatMinutes(elapsed),
+    fatigueHours: formatMinutes(fatigueHours),
     payHours: formatMinutes(payMinutes),
     status: restShort ? "HOLD" : "CLEAR",
     notes: restShort
@@ -289,18 +305,28 @@ export type EntryKey =
   | "REMOVE_RAP"
   | "SET_ABSENCE"
   | "ASSIGN_RAP"
-  | "ASSIGN_SEQUENCE";
+  | "ASSIGN_SEQUENCE"
+  | "REPORT_SEQUENCE"
+  | "FATIGUE_LEG"
+  | "ABSENCE"
+  | "BUILT_REPORT_SEQUENCE"
+  | "SHORTEN_RAP";
 
 /*
  * Entry legends:
  *  EMP#   employee number
  *  SEQNUM sequence number
  *  DT     sequence date (DD)
- *  FDT    event date (DDMM)
- *  TDT    back-for-duty date (DDMM)
+ *  FDT    event date (DDMMM)
+ *  TDT    back-for-duty date (DDMMM)
  *  STM    start time (HHMM)
  *  FTM    time of fatigue + 1 minute (HHMM)
  *  TTM    back-for-duty time (HHMM)
+ *  TR1    time report sequence + 1 minute (HHMM)
+ *  SI     sign-in time (HHMM)
+ *  DY     duty time — sign-in to time of fatigue
+ *  EQ     equipment (320 / 737 / 777 / 787)
+ *  BASE   airport base
  */
 export const ENTRY_DEFS: Record<EntryKey, { label: string; template: string }> = {
   REMOVE_SEQUENCE: { label: "Remove Sequence", template: "2G/EMP#/SEQNUM/DT/FT" },
@@ -310,20 +336,39 @@ export const ENTRY_DEFS: Record<EntryKey, { label: string; template: string }> =
   REMOVE_RAP: { label: "Remove RAP", template: "HYR(V)/EMP#/DATE//R" },
   SET_ABSENCE: { label: "Set Absence", template: "A4/EMP#/FT/DT/TDT///TTM" },
   ASSIGN_RAP: { label: "Assign RAP", template: "HYR/EMP#/DATE//RAP TIME" },
-  ASSIGN_SEQUENCE: { label: "Assign Sequence", template: "HU/EMP#/SEQ#/DATE/FT" },
+  ASSIGN_SEQUENCE: { label: "Assign Sequence", template: "HU/EMP#/SEAT/SEQ#/DATE/FT" },
+  REPORT_SEQUENCE: { label: "Report Sequence", template: "H7/RPT/FDT/BASE/BASE/SI/DY" },
+  FATIGUE_LEG: {
+    label: "Fatigue Leg",
+    template: "H9/FTG/FDT/BASE/BASE/FTM\nHZ/SEAT\nET",
+  },
+  ABSENCE: { label: "Absence", template: "A4/EMP#/FT/FDT/TDT/TDT//TR1/TTM" },
+  BUILT_REPORT_SEQUENCE: {
+    label: "Built Report Sequence",
+    template: "H4(D/I)/BASE/EQ//FDT",
+  },
+  SHORTEN_RAP: {
+    label: "Shorten RAP",
+    template: "HYR/EMP#/START DATE/START TIME//C/START TIME/END TME",
+  },
 };
 
 export const CSS_CALENDAR_URL = "https://css.aa.com/cme/calendarview";
+export const CSS_CREW_URL = "https://css.aa.com/cme/crew";
 
 export const STEP_TEXTS: Record<number, string> = {
-  1: `Go to ${CSS_CALENDAR_URL} — click on RFW.`,
+  1: `Go to ${CSS_CREW_URL} — click on RFW.`,
   2: "Select I'm Done.",
   3: "Click on the Fatigue Red Puck, open Sequence Look.",
-  4: "",
   5: "Click on RFW, and select I am Done.",
-  6: "Assign best Solution. HU/EMP#/SEQ#/DATE/FT.",
-  7: "Assign a RAP (entry: Assign RAP).",
+  6: "Assign best Solution. HU/EMP#/SEAT/SEQ#/DATE/FT.",
+  7: "Assign RAP (entry: Assign RAP).",
   8: "If Long Call RSV, it may be converted to Short Call.",
+  9: `Go to ${CSS_CREW_URL}`,
+  10: "Assign report sequence created. HU/EMP#/SEAT/SEQ#/DATE/RP.",
+  11: "Assign report sequence: NBA/EMP#/SEQ#/DATE/SEAT/RP.",
+  12: "Add No Show / No Go credit: HM/EMP#/DATE/138/EQP/SEAT/5.00",
+  13: "Shorten RAP (entry: Shorten RAP).",
 };
 
 const MONTHS3 = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
@@ -334,9 +379,10 @@ export function ddmmToDdMmm(ddmm: string): string | null {
   return `${ddmm.slice(0, 2)}${MONTHS3[Number(ddmm.slice(2)) - 1]}`;
 }
 
+
 export interface PlanInput {
   bidStatus: BidStatus;
-  /** Time of fatigue before sign-in time. */
+  /** Time of fatigue before sign-in time on the event clock. */
   priorSignIn: boolean | null;
   rejoinSequence: boolean | null;
   rapStarted: boolean | null;
@@ -355,7 +401,12 @@ export interface PlanInput {
   backForDutyDate: string;
   /** hhmm */
   backForDutyTime: string;
+  /** Airport base (e.g. MIA) */
+  airportBase?: string;
+  /** Equipment selected for this event (e.g. 737) */
+  equipment?: string;
 }
+
 
 export interface PlanEntry {
   key: EntryKey;
@@ -399,6 +450,20 @@ function fillTemplate(key: EntryKey, input: PlanInput): string {
   const ttm = parseHhmm(input.backForDutyTime) !== null ? input.backForDutyTime : "TTM";
   // STM: start (sign-in) time
   const stm = parseHhmm(input.signInTime) !== null ? input.signInTime : "STM";
+  const si = stm === "STM" ? "SI" : stm;
+  const base = (input.airportBase ?? "").trim() || "BASE";
+  const eq = (input.equipment ?? "").trim() || "EQ";
+  // TR1: time report sequence (sign-in) + 1 minute
+  const tr1 = plusOneMinute(input.signInTime) ?? "TR1";
+  // DY: duty time — sign-in to time of fatigue; no duty if fatigue is earlier.
+  const siMin = parseHhmm(input.signInTime);
+  const ftMin = parseHhmm(input.timeOfFatigue);
+  const dy =
+    siMin === null || ftMin === null
+      ? "DY"
+      : ftMin < siMin
+        ? "NO DUTY"
+        : formatMinutes(ftMin - siMin).replace(":", "");
   switch (key) {
     case "REMOVE_SEQUENCE":
       return `2G/${emp}/${seq}/${dt}/FT`;
@@ -415,9 +480,21 @@ function fillTemplate(key: EntryKey, input: PlanInput): string {
     case "ASSIGN_RAP":
       return `HYR/${emp}/${fdt}//RAP TIME`;
     case "ASSIGN_SEQUENCE":
-      return `HU/${emp}/${seq}/${fdt}/FT`;
+      return `HU/${emp}/SEAT/${seq}/${fdt}/FT`;
+    case "REPORT_SEQUENCE":
+      return `H7/RPT/${fdt}/${base}/${base}/${si}/${dy}`;
+    case "FATIGUE_LEG":
+      return `H9/FTG/${fdt}/${base}/${base}/${ftm}\nHZ/SEAT\nET`;
+    case "ABSENCE":
+      return `A4/${emp}/FT/${fdt}/${tdt}/${tdt}//${tr1}/${ttm}`;
+    case "BUILT_REPORT_SEQUENCE":
+      return `H4(D/I)/${base}/${eq}//${fdt}`;
+    case "SHORTEN_RAP":
+      return `HYR/${emp}/${fdt}/${si}//C/${si}/END TME`;
   }
+  throw new Error(`Unknown entry key: ${key}`);
 }
+
 
 function entry(key: EntryKey, input: PlanInput): PlanEntry {
   return { key, label: ENTRY_DEFS[key].label, code: fillTemplate(key, input) };

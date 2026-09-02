@@ -1,13 +1,22 @@
 import { useState } from "react";
 import fatigueLogoAsset from "@/assets/fatigue-logo.jpg.asset.json";
 
+const EQUIPMENT_OPTIONS = ["320", "737", "777", "787"];
+
 export function SignInScreen({
   onSignIn,
 }: {
-  onSignIn: (name: string, phone: string) => void;
+  onSignIn: (name: string, equipment: string[]) => void;
 }) {
   const [name, setName] = useState("");
+  const [equipment, setEquipment] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  const toggleEquipment = (value: string) => {
+    setEquipment((current) =>
+      current.includes(value) ? current.filter((item) => item !== value) : [...current, value],
+    );
+  };
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -15,18 +24,19 @@ export function SignInScreen({
       setError("Enter your full name.");
       return;
     }
+    if (equipment.length === 0) {
+      setError("Select at least one airplane equipment type.");
+      return;
+    }
     setError(null);
-    onSignIn(name, "");
+    onSignIn(name, equipment);
   };
 
   return (
     <div className="relative grid min-h-screen place-items-center overflow-hidden bg-background px-5 font-sans text-foreground">
       <div className="pointer-events-none absolute inset-0">
         <div className="aur absolute -top-24 -left-24 h-[520px] w-[520px] rounded-full bg-primary/20 blur-[110px]" />
-        <div
-          className="aur absolute -right-24 bottom-0 h-[460px] w-[460px] rounded-full bg-accent/20 blur-[120px]"
-          style={{ animationDelay: "-6s" }}
-        />
+        <div className="aur absolute -right-24 bottom-0 h-[460px] w-[460px] rounded-full bg-accent/20 blur-[120px]" />
       </div>
 
       <form
@@ -56,10 +66,33 @@ export function SignInScreen({
           onChange={(e) => setName(e.target.value)}
         />
 
+        <span className="mt-5 block font-mono text-[11px] tracking-[0.15em] text-muted-foreground uppercase">
+          Airplane Equipment
+        </span>
+        <div className="mt-2 grid grid-cols-4 gap-2">
+          {EQUIPMENT_OPTIONS.map((value) => {
+            const selected = equipment.includes(value);
+            return (
+              <button
+                key={value}
+                type="button"
+                onClick={() => toggleEquipment(value)}
+                className={
+                  selected
+                    ? "rounded-lg bg-primary px-2 py-2.5 font-mono text-sm font-semibold text-primary-foreground ring-1 ring-primary/50"
+                    : "rounded-lg bg-secondary/30 px-2 py-2.5 font-mono text-sm font-medium text-muted-foreground ring-1 ring-border transition-transform hover:-translate-y-px"
+                }
+              >
+                {value}
+              </button>
+            );
+          })}
+        </div>
+        <p className="mt-2 font-mono text-[10px] text-muted-foreground">
+          Select every equipment type you work with.
+        </p>
 
-        {error ? (
-          <p className="mt-3 font-mono text-xs text-destructive">{error}</p>
-        ) : null}
+        {error ? <p className="mt-3 font-mono text-xs text-destructive">{error}</p> : null}
 
         <button
           type="submit"
