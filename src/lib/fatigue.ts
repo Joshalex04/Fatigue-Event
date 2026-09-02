@@ -515,11 +515,9 @@ export function buildEntriesPlan(input: PlanInput): EntriesPlan {
     pending.push("Enter a valid sign-in time and time of fatigue.");
     return { ready: false, pending, entries, steps: [], notes };
   }
-  if (!input.priorSignIn) {
-    pending.push("After sign-in scenario steps are not defined yet — prior sign-in rules shown only.");
-    return { ready: false, pending, entries, steps: [], notes };
-  }
-  if (input.rejoinSequence === null) {
+  // RSV Flying after sign-in does not branch on the rejoin question.
+  const rejoinApplies = !(input.bidStatus === "RSV_FLYING" && !input.priorSignIn);
+  if (rejoinApplies && input.rejoinSequence === null) {
     pending.push("Answer “Can Rejoin Sequence?” to generate the entries and steps.");
     return { ready: false, pending, entries, steps: [], notes };
   }

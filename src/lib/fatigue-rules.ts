@@ -65,51 +65,31 @@ export interface RuleFacts {
   recoveryFlying: boolean | null;
 }
 
+const ASSIGN_RAP_NOTE =
+  "Assign Rap (entry: Assign RAP) — if Long Call, it may be converted to Short Call.";
+
 export const FATIGUE_RULES: FatigueRule[] = [
-  /* ---------------- Prior sign-in — can rejoin the sequence ---------------- */
+  /* ================================================================== */
+  /* PRIOR SIGN-IN — Line Holder / RSV on PR-OG                          */
+  /* ================================================================== */
   {
-    id: "PRIOR-REJOIN-YES",
-    label: "Prior sign-in · can rejoin sequence",
-    when: { priorSignIn: true, rejoinSequence: true },
+    id: "PRIOR-REJOIN-YES-LH",
+    label: "Line Holder · prior sign-in · can rejoin",
+    when: { bidStatus: "LINE_HOLDER", priorSignIn: true, rejoinSequence: true },
     entries: ["MODIFY_SEQUENCE", "INPUT_ABSENCE"],
     steps: [1, 2],
   },
   {
-    id: "PRIOR-REJOIN-YES-RSVF-RAP",
-    label: "RSV Flying · can rejoin · RAP answered",
-    when: { priorSignIn: true, rejoinSequence: true, bidStatus: "RSV_FLYING" },
-    requires: [
-      { field: "rapStarted", message: "Answer “RAP Started” to complete the entries." },
-    ],
+    id: "PRIOR-REJOIN-YES-RSVPOG",
+    label: "RSV PR-OG · prior sign-in · can rejoin",
+    when: { bidStatus: "RSV_PR_OG", priorSignIn: true, rejoinSequence: true },
+    entries: ["MODIFY_SEQUENCE", "INPUT_ABSENCE"],
+    steps: [1, 2],
   },
   {
-    id: "PRIOR-REJOIN-YES-RSVF-RAP-STARTED",
-    label: "RSV Flying · can rejoin · RAP started",
-    when: {
-      priorSignIn: true,
-      rejoinSequence: true,
-      bidStatus: "RSV_FLYING",
-      rapStarted: true,
-    },
-    entries: ["MODIFY_RAP"],
-  },
-  {
-    id: "PRIOR-REJOIN-YES-RSVF-RAP-NOT-STARTED",
-    label: "RSV Flying · can rejoin · RAP not started",
-    when: {
-      priorSignIn: true,
-      rejoinSequence: true,
-      bidStatus: "RSV_FLYING",
-      rapStarted: false,
-    },
-    entries: ["REMOVE_RAP"],
-  },
-
-  /* -------------- Prior sign-in — cannot rejoin the sequence -------------- */
-  {
-    id: "PRIOR-REJOIN-NO",
-    label: "Prior sign-in · cannot rejoin sequence",
-    when: { priorSignIn: true, rejoinSequence: false },
+    id: "PRIOR-REJOIN-NO-LH",
+    label: "Line Holder · prior sign-in · cannot rejoin",
+    when: { bidStatus: "LINE_HOLDER", priorSignIn: true, rejoinSequence: false },
     entries: ["REMOVE_SEQUENCE", "INPUT_ABSENCE"],
     steps: [1, 3],
     requires: [
@@ -117,25 +97,170 @@ export const FATIGUE_RULES: FatigueRule[] = [
     ],
   },
   {
-    id: "PRIOR-REJOIN-NO-RSVF",
-    label: "RSV Flying · cannot rejoin · assign RAP",
-    when: { priorSignIn: true, rejoinSequence: false, bidStatus: "RSV_FLYING" },
-    entries: ["ASSIGN_RAP"],
-    steps: [7],
-    notes: ["Assign a RAP — if Long Call, it may be converted to Short Call."],
+    id: "PRIOR-REJOIN-NO-RSVPOG",
+    label: "RSV PR-OG · prior sign-in · cannot rejoin",
+    when: { bidStatus: "RSV_PR_OG", priorSignIn: true, rejoinSequence: false },
+    entries: ["REMOVE_SEQUENCE", "INPUT_ABSENCE"],
+    steps: [1, 3],
+    requires: [
+      { field: "recoveryFlying", message: "Answer “Recovery Flying” to complete the steps." },
+    ],
   },
   {
     id: "PRIOR-REJOIN-NO-RECOVERY-YES",
-    label: "Cannot rejoin · recovery flying available",
+    label: "Prior sign-in · cannot rejoin · recovery flying",
     when: { priorSignIn: true, rejoinSequence: false, recoveryFlying: true },
     steps: [6, 2],
   },
-
   {
     id: "PRIOR-REJOIN-NO-RECOVERY-NO",
-    label: "Cannot rejoin · no recovery flying",
+    label: "Prior sign-in · cannot rejoin · no recovery flying",
     when: { priorSignIn: true, rejoinSequence: false, recoveryFlying: false },
     steps: [5],
+  },
+
+  /* ================================================================== */
+  /* PRIOR SIGN-IN — RSV Flying                                          */
+  /* ================================================================== */
+  {
+    id: "RSVF-PRIOR-REJOIN-YES",
+    label: "RSV Flying · prior sign-in · can rejoin",
+    when: { bidStatus: "RSV_FLYING", priorSignIn: true, rejoinSequence: true },
+    entries: ["MODIFY_SEQUENCE", "SET_ABSENCE"],
+    requires: [
+      { field: "rapStarted", message: "Answer “RAP Started” to complete the entries." },
+    ],
+  },
+  {
+    id: "RSVF-PRIOR-REJOIN-YES-RAP-STARTED",
+    label: "RSV Flying · prior · can rejoin · RAP started",
+    when: {
+      bidStatus: "RSV_FLYING",
+      priorSignIn: true,
+      rejoinSequence: true,
+      rapStarted: true,
+    },
+    entries: ["MODIFY_RAP"],
+  },
+  {
+    id: "RSVF-PRIOR-REJOIN-YES-RAP-NOT-STARTED",
+    label: "RSV Flying · prior · can rejoin · RAP not started",
+    when: {
+      bidStatus: "RSV_FLYING",
+      priorSignIn: true,
+      rejoinSequence: true,
+      rapStarted: false,
+    },
+    entries: ["REMOVE_RAP"],
+  },
+  {
+    id: "RSVF-PRIOR-REJOIN-NO",
+    label: "RSV Flying · prior sign-in · cannot rejoin",
+    when: { bidStatus: "RSV_FLYING", priorSignIn: true, rejoinSequence: false },
+    entries: ["REMOVE_SEQUENCE", "SET_ABSENCE", "ASSIGN_RAP"],
+    steps: [7],
+    notes: [ASSIGN_RAP_NOTE],
+  },
+
+  /* ================================================================== */
+  /* AFTER SIGN-IN — Line Holder / RSV on PR-OG                          */
+  /* ================================================================== */
+  {
+    id: "AFTER-REJOIN-YES-LH",
+    label: "Line Holder · after sign-in · can rejoin",
+    when: { bidStatus: "LINE_HOLDER", priorSignIn: false, rejoinSequence: true },
+    entries: ["MODIFY_SEQUENCE", "REPORT_SEQUENCE", "FATIGUE_LEG", "ABSENCE"],
+    steps: [9, 3],
+    requires: [
+      { field: "recoveryFlying", message: "Answer “Recovery Flying” to complete the steps." },
+    ],
+  },
+  {
+    id: "AFTER-REJOIN-YES-RSVPOG",
+    label: "RSV PR-OG · after sign-in · can rejoin",
+    when: { bidStatus: "RSV_PR_OG", priorSignIn: false, rejoinSequence: true },
+    entries: ["MODIFY_SEQUENCE", "REPORT_SEQUENCE", "FATIGUE_LEG", "ABSENCE"],
+    steps: [9, 3],
+    requires: [
+      { field: "recoveryFlying", message: "Answer “Recovery Flying” to complete the steps." },
+    ],
+  },
+  {
+    id: "AFTER-REJOIN-YES-RECOVERY-YES",
+    label: "After sign-in · can rejoin · recovery flying",
+    when: { priorSignIn: false, rejoinSequence: true, recoveryFlying: true },
+    steps: [6, 2],
+  },
+  {
+    id: "AFTER-REJOIN-YES-RECOVERY-NO",
+    label: "After sign-in · can rejoin · no recovery flying",
+    when: { priorSignIn: false, rejoinSequence: true, recoveryFlying: false },
+    steps: [1, 2],
+  },
+  {
+    id: "AFTER-REJOIN-NO-LH",
+    label: "Line Holder · after sign-in · cannot rejoin",
+    when: { bidStatus: "LINE_HOLDER", priorSignIn: false, rejoinSequence: false },
+    entries: ["REMOVE_SEQUENCE", "BUILT_REPORT_SEQUENCE", "REPORT_SEQUENCE", "ABSENCE"],
+    requires: [
+      { field: "recoveryFlying", message: "Answer “Recovery Flying” to complete the steps." },
+    ],
+  },
+  {
+    id: "AFTER-REJOIN-NO-RSVPOG",
+    label: "RSV PR-OG · after sign-in · cannot rejoin",
+    when: { bidStatus: "RSV_PR_OG", priorSignIn: false, rejoinSequence: false },
+    entries: ["REMOVE_SEQUENCE", "BUILT_REPORT_SEQUENCE", "REPORT_SEQUENCE", "ABSENCE"],
+    requires: [
+      { field: "recoveryFlying", message: "Answer “Recovery Flying” to complete the steps." },
+    ],
+  },
+  {
+    id: "AFTER-REJOIN-NO-RECOVERY-YES",
+    label: "After sign-in · cannot rejoin · recovery flying",
+    when: { priorSignIn: false, rejoinSequence: false, recoveryFlying: true },
+    steps: [6, 2],
+  },
+  {
+    id: "AFTER-REJOIN-NO-RECOVERY-NO",
+    label: "After sign-in · cannot rejoin · no recovery flying",
+    when: { priorSignIn: false, rejoinSequence: false, recoveryFlying: false },
+    steps: [1, 2],
+  },
+
+  /* ================================================================== */
+  /* AFTER SIGN-IN — RSV Flying                                          */
+  /* ================================================================== */
+  {
+    id: "RSVF-AFTER",
+    label: "RSV Flying · after sign-in",
+    when: { bidStatus: "RSV_FLYING", priorSignIn: false },
+    entries: [
+      "REMOVE_SEQUENCE",
+      "BUILT_REPORT_SEQUENCE",
+      "REPORT_SEQUENCE",
+      "FATIGUE_LEG",
+      "ABSENCE",
+      "ASSIGN_RAP",
+    ],
+    steps: [11, 12, 7],
+    notes: [ASSIGN_RAP_NOTE],
+    requires: [
+      { field: "rapStarted", message: "Answer “RAP Started” to complete the entries." },
+    ],
+  },
+  {
+    id: "RSVF-AFTER-RAP-STARTED",
+    label: "RSV Flying · after sign-in · RAP started",
+    when: { bidStatus: "RSV_FLYING", priorSignIn: false, rapStarted: true },
+    entries: ["SHORTEN_RAP"],
+    steps: [13],
+  },
+  {
+    id: "RSVF-AFTER-RAP-NOT-STARTED",
+    label: "RSV Flying · after sign-in · RAP not started",
+    when: { bidStatus: "RSV_FLYING", priorSignIn: false, rapStarted: false },
+    entries: ["REMOVE_RAP"],
   },
 ];
 
