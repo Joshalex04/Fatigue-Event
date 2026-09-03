@@ -152,6 +152,19 @@ export function dutyElapsed(signIn: number, fatigue: number): number {
   return fatigue >= signIn ? fatigue - signIn : 0;
 }
 
+export function isFatigueBeforeSignIn(
+  signIn: number,
+  fatigue: number,
+  signInDate?: string,
+  fatigueDate?: string,
+): boolean {
+  if (signInDate && fatigueDate && DDMM.test(signInDate) && DDMM.test(fatigueDate)) {
+    return isDateBefore(fatigueDate, signInDate) ||
+      (fatigueDate === signInDate && fatigue < signIn);
+  }
+  return fatigue < signIn;
+}
+
 /**
  * Duty elapsed using the selected dates. A call on the following date can
  * legitimately cross midnight; an earlier clock time on the same date is NO DUTY.
