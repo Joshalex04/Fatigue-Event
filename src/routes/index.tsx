@@ -18,7 +18,7 @@ import {
   buildEntriesPlan,
   calculateFatigue,
   ddmmToDdMmm,
-  dutyElapsed,
+  dutyElapsedOnDates,
   formatMinutes,
   planToText,
   parseHhmm,
@@ -127,6 +127,7 @@ interface SavedEvent {
   sequenceDate?: string;
   timeOfFatigue: string;
   signInTime: string;
+  signInDate?: string;
   backForDutyDate: string;
   backForDutyTime: string;
   femCompleted: boolean;
@@ -163,12 +164,14 @@ function Index() {
   const [sequenceDate, setSequenceDate] = useState(() => format(new Date(), "dd/MM"));
   const [timeOfFatigue, setTimeOfFatigue] = useState("2340");
   const [signInTime, setSignInTime] = useState("2215");
+  const [signInDate, setSignInDate] = useState(() => format(new Date(), "dd/MM"));
   const [backForDutyDate, setBackForDutyDate] = useState("05/12");
   const [backForDutyTime, setBackForDutyTime] = useState("0730");
   const [femCompleted, setFemCompleted] = useState(false);
   const [conditions, setConditions] = useState<ConditionId[]>([]);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [eventCalendarOpen, setEventCalendarOpen] = useState(false);
+  const [signInCalendarOpen, setSignInCalendarOpen] = useState(false);
   const [sequenceCalendarOpen, setSequenceCalendarOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState<SavedEvent[]>([]);
