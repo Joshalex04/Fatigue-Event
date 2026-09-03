@@ -379,6 +379,17 @@ export function ddmmToDdMmm(ddmm: string): string | null {
   return `${ddmm.slice(0, 2)}${MONTHS3[Number(ddmm.slice(2)) - 1]}`;
 }
 
+/**
+ * ddmm -> DDMMMYY (e.g. 0109 -> 01SEP26). The year defaults to the current
+ * year; pass a 2-digit `yy` to override. Returns null for invalid input.
+ */
+export function ddmmToDdMmmYy(ddmm: string, yy?: string): string | null {
+  const base = ddmmToDdMmm(ddmm);
+  if (base === null) return null;
+  const year = yy && /^\d{2}$/.test(yy) ? yy : String(new Date().getFullYear()).slice(-2);
+  return `${base}${year}`;
+}
+
 
 export interface PlanInput {
   bidStatus: BidStatus;
