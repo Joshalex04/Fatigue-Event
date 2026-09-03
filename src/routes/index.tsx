@@ -146,7 +146,7 @@ interface SavedEvent {
   equipment?: string;
 }
 
-const STORAGE_KEY = "fatigue-events-v1";
+
 
 function Index() {
   const { hydrated, user, signIn, signOut } = useSession();
