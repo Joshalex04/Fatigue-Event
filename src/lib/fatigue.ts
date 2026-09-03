@@ -129,11 +129,19 @@ export interface FatigueResult {
 const HHMM = /^([01]\d|2[0-3])[0-5]\d$/;
 const DDMM = /^(0[1-9]|[12]\d|3[01])(0[1-9]|1[0-2])$/;
 
+function calendarDayDelta(from: string, to: string): number | null {
+  if (!DDMM.test(from) || !DDMM.test(to)) return null;
+  const fromDate = new Date(2000, Number(from.slice(2)) - 1, Number(from.slice(0, 2)));
+  const toDate = new Date(2000, Number(to.slice(2)) - 1, Number(to.slice(0, 2)));
+  let delta = Math.round((toDate.getTime() - fromDate.getTime()) / 86_400_000);
+  // DDMM has no year; treat Dec -> Jan as the next calendar day sequence.
+  if (delta < 0 && from.slice(2) === "12" && to.slice(2) === "01") delta += 366;
+  return delta;
+}
+
 function isDateBefore(left: string, right: string): boolean {
-  if (!DDMM.test(left) || !DDMM.test(right)) return false;
-  const leftDate = new Date(2000, Number(left.slice(2)) - 1, Number(left.slice(0, 2)));
-  const rightDate = new Date(2000, Number(right.slice(2)) - 1, Number(right.slice(0, 2)));
-  return leftDate.getTime() < rightDate.getTime();
+  const delta = calendarDayDelta(right, left);
+  return delta !== null && delta < 0;
 }
 
 export function parseHhmm(value: string): number | null {
