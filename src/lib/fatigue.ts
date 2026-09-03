@@ -373,7 +373,7 @@ export type EntryKey =
  *  EMP#   employee number
  *  SEQNUM sequence number
  *  DT     sequence date (DD)
- *  FDT    event date (DDMMM)
+ *  FDT    sequence date (DDMMM)
  *  TDT    back-for-duty date (DDMMM)
  *  STM    start time (HHMM)
  *  FTM    time of fatigue + 1 minute (HHMM)
@@ -391,7 +391,7 @@ export const ENTRY_DEFS: Record<EntryKey, { label: string; template: string }> =
   MODIFY_RAP: { label: "Modify RAP", template: "HYR(V)/EMP#/START DT/END DT//START TIME/END TIME" },
   REMOVE_RAP: { label: "Remove RAP", template: "HYR(V)/EMP#/DATE//R" },
   SET_ABSENCE: { label: "Set Absence", template: "A4/EMP#/FT/DT/TDT///TTM" },
-  ASSIGN_RAP: { label: "Assign RAP", template: "HYR/EMP#/DATE//RAP TIME" },
+  ASSIGN_RAP: { label: "Assign RAP", template: "HYR/EMP#/DATE/RAP TIME" },
   ASSIGN_SEQUENCE: { label: "Assign Sequence", template: "HU/EMP#/SEAT/SEQ#/DATE/FT" },
   REPORT_SEQUENCE: { label: "Report Sequence", template: "H7/RPT/FDT/BASE/BASE/SI/DY" },
   FATIGUE_LEG: {
@@ -405,7 +405,7 @@ export const ENTRY_DEFS: Record<EntryKey, { label: string; template: string }> =
   },
   SHORTEN_RAP: {
     label: "Shorten RAP",
-    template: "HYR/EMP#/START DATE/START TIME//C/START TIME/END TME",
+    template: "HYR/EMP#/DATE/0000//C/0000/END TME",
   },
 };
 
@@ -418,7 +418,7 @@ export const STEP_TEXTS: Record<number, string> = {
   3: "Click on the Fatigue Red Puck, open Sequence Look.",
   5: "Click on RFW, and select I am Done.",
   6: "Assign best Solution. HU/EMP#/SEAT/SEQ#/DATE/FT.",
-  7: "Assign RAP (entry: Assign RAP).",
+  7: "Assign RAP HYR/EMP#/DATE/RAP TIME.",
   8: "If Long Call RSV, it may be converted to Short Call.",
   9: `Go to ${CSS_CREW_URL}`,
   10: "Assign report sequence created. HU/EMP#/SEAT/SEQ#/DATE/RP.",
@@ -513,8 +513,8 @@ function fillTemplate(key: EntryKey, input: PlanInput): string {
   const seq = input.sequenceNumber.trim() || "SEQNUM";
   // DT: sequence date as DD
   const dt = DDMM.test(input.sequenceDate) ? input.sequenceDate.slice(0, 2) : "DT";
-  // FDT/TDT: dates as DDMMMYY
-  const fdt = ddmmToDdMmmYy(input.eventDate) ?? "FDT";
+  // FDT: sequence date as DDMMM; TDT: back-for-duty date as DDMMMYY
+  const fdt = ddmmToDdMmm(input.sequenceDate) ?? "FDT";
   const tdt = ddmmToDdMmmYy(input.backForDutyDate) ?? "TDT";
   // FTM: time of fatigue + 1 minute
   const ftm = plusOneMinute(input.timeOfFatigue) ?? "FTM";
@@ -554,7 +554,7 @@ function fillTemplate(key: EntryKey, input: PlanInput): string {
     case "SET_ABSENCE":
       return `A4/${emp}/FT/${dt}/${tdt}///${ttm}`;
     case "ASSIGN_RAP":
-      return `HYR/${emp}/${fdt}//RAP TIME`;
+      return `HYR/${emp}/${fdt}/RAP TIME`;
     case "ASSIGN_SEQUENCE":
       return `HU/${emp}/SEAT/${seq}/${fdt}/FT`;
     case "REPORT_SEQUENCE":
@@ -566,7 +566,7 @@ function fillTemplate(key: EntryKey, input: PlanInput): string {
     case "BUILT_REPORT_SEQUENCE":
       return `H4(D/I)/${base}/${eq}//${fdt}`;
     case "SHORTEN_RAP":
-      return `HYR/${emp}/${fdt}/${si}//C/${si}/END TME`;
+      return `HYR/${emp}/${fdt}/0000//C/0000/END TME`;
   }
   throw new Error(`Unknown entry key: ${key}`);
 }
@@ -617,6 +617,14 @@ export function buildEntriesPlan(input: PlanInput): EntriesPlan {
     }
     for (const n of rule.steps ?? []) stepNums.push(n);
     for (const note of rule.notes ?? []) notes.push(note);
+  }
+
+  // Built Report Sequence always pairs with Assign Sequence.
+  if (
+    entries.some((e) => e.key === "BUILT_REPORT_SEQUENCE") &&
+    !entries.some((e) => e.key === "ASSIGN_SEQUENCE")
+  ) {
+    entries.push(entry("ASSIGN_SEQUENCE", input));
   }
 
   return { ready: pending.length === 0, pending, entries, steps: stepsOf(stepNums), notes };
