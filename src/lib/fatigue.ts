@@ -268,10 +268,12 @@ export function calculateFatigue(input: FatigueInput): FatigueResult {
   }
 
   const elapsed = dutyElapsedOnDates(signIn, fatigue, input.signInDate, input.eventDate);
-  const fatigueIsBeforeSignIn = input.signInDate && input.eventDate
-    ? isDateBefore(input.eventDate, input.signInDate) ||
-      (input.eventDate === input.signInDate && fatigue < signIn)
-    : fatigue < signIn;
+  const fatigueIsBeforeSignIn = isFatigueBeforeSignIn(
+    signIn,
+    fatigue,
+    input.signInDate,
+    input.eventDate,
+  );
   const fatigueHours = elapsedAcrossMidnight(fatigue, backTime);
   const payMinutes = fatigueHours;
   const restAvailable = elapsedAcrossMidnight(fatigue, backTime);
@@ -443,6 +445,8 @@ export interface PlanInput {
   timeOfFatigue: string;
   /** hhmm */
   signInTime: string;
+  /** ddmm — the calendar date on which the pilot signed in. */
+  signInDate?: string;
   /** ddmm */
   backForDutyDate: string;
   /** hhmm */
@@ -505,13 +509,16 @@ function fillTemplate(key: EntryKey, input: PlanInput): string {
   // TR1: sign-in + duty time + 1 minute, rolling past midnight.
   const siMin = parseHhmm(input.signInTime);
   const ftMin = parseHhmm(input.timeOfFatigue);
-  const dutyMinutes = siMin !== null && ftMin !== null ? dutyElapsed(siMin, ftMin) : 0;
+  const dutyMinutes =
+    siMin !== null && ftMin !== null
+      ? dutyElapsedOnDates(siMin, ftMin, input.signInDate, input.eventDate)
+      : 0;
   const tr1 = siMin === null ? "TR1" : addMinutes(input.signInTime, dutyMinutes + 1) ?? "TR1";
   // DY: duty time — sign-in to time of fatigue; no duty if fatigue is earlier.
   const dy =
     siMin === null || ftMin === null
       ? "DY"
-      : ftMin < siMin
+      : isFatigueBeforeSignIn(siMin, ftMin, input.signInDate, input.eventDate)
         ? "NO DUTY"
         : formatMinutes(dutyMinutes).replace(":", "");
   switch (key) {
