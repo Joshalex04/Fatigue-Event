@@ -23,6 +23,7 @@ export default defineTool({
       .optional()
       .describe("Optional condition ids that add required entries."),
   },
+  outputSchema: {},
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: (input) => {
     const result = calculateFatigue({

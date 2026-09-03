@@ -28,6 +28,7 @@ export default defineTool({
     airportBase: z.string().optional().describe("Airport base, e.g. MIA."),
     equipment: z.string().optional().describe("Equipment, e.g. 737."),
   },
+  outputSchema: {},
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: (input) => {
     const si = Number(input.signInTime.slice(0, 2)) * 60 + Number(input.signInTime.slice(2));
