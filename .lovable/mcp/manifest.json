@@ -1,0 +1,201 @@
+{
+  "version": 1,
+  "sdk_version": "1.0.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "none"
+  },
+  "mcp": {
+    "server": {
+      "name": "fatigue-event",
+      "version": "0.1.0",
+      "title": "Fatigue Event"
+    },
+    "tools": [
+      {
+        "name": "calculate_fatigue_event",
+        "title": "Calculate fatigue event",
+        "description": "Compute duty time, fatigue hours, pay hours and CLEAR/HOLD status for a pilot fatigue event from sign-in time, time of fatigue and back-for-duty date/time.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "bidStatus": {
+              "type": "string",
+              "enum": [
+                "LINE_HOLDER",
+                "RSV_PR_OG",
+                "RSV_FLYING"
+              ],
+              "description": "Pilot bid status: Line Holder, Reserve on PR/OG, or Reserve Flying."
+            },
+            "timeOfFatigue": {
+              "type": "string",
+              "pattern": "^\\d{4}$",
+              "description": "Time of fatigue call, HHMM military."
+            },
+            "signInTime": {
+              "type": "string",
+              "pattern": "^\\d{4}$",
+              "description": "Sign-in time, HHMM military."
+            },
+            "backForDutyDate": {
+              "type": "string",
+              "pattern": "^\\d{4}$",
+              "description": "Back-for-duty date, DDMM."
+            },
+            "backForDutyTime": {
+              "type": "string",
+              "pattern": "^\\d{4}$",
+              "description": "Back-for-duty time, HHMM military."
+            },
+            "femCompleted": {
+              "type": "boolean",
+              "description": "Whether the FEM has been completed."
+            },
+            "conditions": {
+              "description": "Optional condition ids that add required entries.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "bidStatus",
+            "timeOfFatigue",
+            "signInTime",
+            "backForDutyDate",
+            "backForDutyTime",
+            "femCompleted"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "build_entries_plan",
+        "title": "Build entries and steps",
+        "description": "Generate the ordered CSS entry codes (with labels) and the numbered scheduler steps for a fatigue event, based on bid status, rejoin/RAP/recovery answers and the event details.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "bidStatus": {
+              "type": "string",
+              "enum": [
+                "LINE_HOLDER",
+                "RSV_PR_OG",
+                "RSV_FLYING"
+              ]
+            },
+            "rejoinSequence": {
+              "description": "Can the pilot rejoin the sequence? true/false, null if unknown.",
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "rapStarted": {
+              "description": "RAP started? Reserve Flying only.",
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "recoveryFlying": {
+              "description": "Recovery flying? true/false, null if unknown.",
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "employeeNumber": {
+              "default": "",
+              "description": "Pilot employee number.",
+              "type": "string"
+            },
+            "sequenceNumber": {
+              "default": "",
+              "description": "Sequence number (digits).",
+              "type": "string"
+            },
+            "sequenceDate": {
+              "type": "string",
+              "pattern": "^\\d{4}$",
+              "description": "Sequence date, DDMM."
+            },
+            "eventDate": {
+              "type": "string",
+              "pattern": "^\\d{4}$",
+              "description": "Event date (fatigue call date), DDMM."
+            },
+            "timeOfFatigue": {
+              "type": "string",
+              "pattern": "^\\d{4}$",
+              "description": "Time of fatigue, HHMM."
+            },
+            "signInTime": {
+              "type": "string",
+              "pattern": "^\\d{4}$",
+              "description": "Sign-in time, HHMM."
+            },
+            "backForDutyDate": {
+              "type": "string",
+              "pattern": "^\\d{4}$",
+              "description": "Back-for-duty date, DDMM."
+            },
+            "backForDutyTime": {
+              "type": "string",
+              "pattern": "^\\d{4}$",
+              "description": "Back-for-duty time, HHMM."
+            },
+            "airportBase": {
+              "description": "Airport base, e.g. MIA.",
+              "type": "string"
+            },
+            "equipment": {
+              "description": "Equipment, e.g. 737.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "bidStatus",
+            "sequenceDate",
+            "eventDate",
+            "timeOfFatigue",
+            "signInTime",
+            "backForDutyDate",
+            "backForDutyTime"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_reference",
+        "title": "List entry and step reference",
+        "description": "Return the reference data used by the fatigue calculator: bid statuses, condition options, entry templates with labels, and the numbered scheduler steps.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
