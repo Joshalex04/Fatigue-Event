@@ -15,6 +15,8 @@ export default defineTool({
     bidStatus,
     timeOfFatigue: z.string().regex(/^\d{4}$/).describe("Time of fatigue call, HHMM military."),
     signInTime: z.string().regex(/^\d{4}$/).describe("Sign-in time, HHMM military."),
+    eventDate: z.string().regex(/^\d{4}$/).default("0101").describe("Fatigue event date, DDMM."),
+    signInDate: z.string().regex(/^\d{4}$/).default("0101").describe("Sign-in date, DDMM."),
     backForDutyDate: z.string().regex(/^\d{4}$/).describe("Back-for-duty date, DDMM."),
     backForDutyTime: z.string().regex(/^\d{4}$/).describe("Back-for-duty time, HHMM military."),
     femCompleted: z.boolean().describe("Whether the FEM has been completed."),
@@ -23,14 +25,17 @@ export default defineTool({
       .optional()
       .describe("Optional condition ids that add required entries."),
   },
+  outputSchema: {},
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: (input) => {
     const result = calculateFatigue({
-      bidStatus: input.bidStatus as BidStatus,
-      timeOfFatigue: input.timeOfFatigue,
-      signInTime: input.signInTime,
-      backForDutyDate: input.backForDutyDate,
-      backForDutyTime: input.backForDutyTime,
+       bidStatus: input.bidStatus as BidStatus,
+       timeOfFatigue: input.timeOfFatigue,
+       signInTime: input.signInTime,
+       eventDate: input.eventDate,
+       signInDate: input.signInDate,
+       backForDutyDate: input.backForDutyDate,
+       backForDutyTime: input.backForDutyTime,
       femCompleted: input.femCompleted,
       conditions: (input.conditions ?? []) as ConditionId[],
     });

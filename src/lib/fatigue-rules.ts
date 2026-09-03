@@ -66,7 +66,9 @@ export interface RuleFacts {
 }
 
 const ASSIGN_RAP_NOTE =
-  "Assign Rap (entry: Assign RAP) — if Long Call, it may be converted to Short Call.";
+  "Command: HYR/EMP#/FDT//RAP TIME — if Long Call, it may be converted to Short Call.";
+const RSV_OG_PR_NOTE =
+  "RSV on OG/PR: Recovery Flying may only be assigned on RSV days.";
 
 export const FATIGUE_RULES: FatigueRule[] = [
   /* ================================================================== */
@@ -85,6 +87,7 @@ export const FATIGUE_RULES: FatigueRule[] = [
     when: { bidStatus: "RSV_PR_OG", priorSignIn: true, rejoinSequence: true },
     entries: ["MODIFY_SEQUENCE", "INPUT_ABSENCE"],
     steps: [1, 2],
+    notes: [RSV_OG_PR_NOTE],
   },
   {
     id: "PRIOR-REJOIN-NO-LH",
@@ -105,6 +108,7 @@ export const FATIGUE_RULES: FatigueRule[] = [
     requires: [
       { field: "recoveryFlying", message: "Answer “Recovery Flying” to complete the steps." },
     ],
+    notes: [RSV_OG_PR_NOTE],
   },
   {
     id: "PRIOR-REJOIN-NO-RECOVERY-YES",
@@ -184,6 +188,7 @@ export const FATIGUE_RULES: FatigueRule[] = [
     requires: [
       { field: "recoveryFlying", message: "Answer “Recovery Flying” to complete the steps." },
     ],
+    notes: [RSV_OG_PR_NOTE],
   },
   {
     id: "AFTER-REJOIN-YES-RECOVERY-YES",
@@ -214,6 +219,7 @@ export const FATIGUE_RULES: FatigueRule[] = [
     requires: [
       { field: "recoveryFlying", message: "Answer “Recovery Flying” to complete the steps." },
     ],
+    notes: [RSV_OG_PR_NOTE],
   },
   {
     id: "AFTER-REJOIN-NO-RECOVERY-YES",

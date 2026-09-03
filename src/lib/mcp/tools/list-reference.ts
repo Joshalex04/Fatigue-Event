@@ -7,6 +7,7 @@ export default defineTool({
   description:
     "Return the reference data used by the fatigue calculator: bid statuses, condition options, entry templates with labels, and the numbered scheduler steps.",
   inputSchema: {},
+  outputSchema: {},
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: () => {
     const reference = {
