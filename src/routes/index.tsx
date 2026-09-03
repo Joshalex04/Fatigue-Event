@@ -1118,6 +1118,13 @@ function Index() {
                 Enter codes, dates and durations exactly as listed. Entries and steps re-compute on
                 every field change.
               </p>
+              {reminderVisible ? (
+                <div className="mt-5 rounded-xl bg-warning/[0.08] px-4 py-3 ring-1 ring-warning/35">
+                  <p className="font-mono text-xs font-semibold text-warning">
+                    {schedulerName.trim() || user.name}: AFTER FATIGUE COMPLETED, NOTIFY PILOT — DETAILED VOICE MESSAGE OR POSITIVE CONTACT.
+                  </p>
+                </div>
+              ) : null}
             </div>
 
           </section>
