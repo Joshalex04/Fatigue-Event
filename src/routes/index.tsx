@@ -11,6 +11,8 @@ import { SignInScreen } from "@/components/sign-in-screen";
 import { PlaneSplash } from "@/components/plane-splash";
 import { SuggestionBox } from "@/components/suggestion-box";
 import { AdminSuggestions } from "@/components/admin-suggestions";
+import { AdminEvents } from "@/components/admin-events";
+import { listProfiles, readUserEvents, upsertProfile, writeUserEvents } from "@/lib/profiles";
 import {
   BID_STATUS_OPTIONS,
   CSS_CALENDAR_URL,
@@ -182,22 +184,18 @@ function Index() {
   const [recoveryFlying, setRecoveryFlying] = useState<boolean | null>(null);
   const [reminderVisible, setReminderVisible] = useState(false);
 
+  // Saved events are scoped to the signed-in username.
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setSaved(JSON.parse(raw) as SavedEvent[]);
-    } catch {
-      /* ignore corrupt storage */
+    if (!user?.name) {
+      setSaved([]);
+      return;
     }
-  }, []);
+    setSaved(readUserEvents<SavedEvent>(user.name));
+  }, [user?.name]);
 
   const persist = (next: SavedEvent[]) => {
     setSaved(next);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    } catch {
-      /* ignore quota errors */
-    }
+    if (user?.name) writeUserEvents<SavedEvent>(user.name, next);
   };
 
   const result = useMemo(
@@ -430,7 +428,9 @@ function Index() {
   if (!user) {
     return (
       <SignInScreen
+        profiles={listProfiles().map((p) => p.displayName)}
         onSignIn={(name, equipment) => {
+          upsertProfile(name, equipment);
           signIn(name, equipment);
           setSchedulerName(name.trim());
           setSelectedEquipment(equipment[0] ?? "");
@@ -1135,7 +1135,7 @@ function Index() {
         <section className="rounded-2xl bg-panel/40 p-5 ring-1 ring-border backdrop-blur-xl sm:p-6 lg:col-span-8">
           <div className="mb-4 flex items-center justify-between">
             <p className="font-mono text-[11px] tracking-[0.2em] text-muted-foreground uppercase">
-              Saved Events · {saved.length}
+              Saved Events · {user.name} · {saved.length}
             </p>
             {saved.length > 0 ? (
               <button
@@ -1199,6 +1199,7 @@ function Index() {
         <div className="space-y-5 lg:col-span-4">
           <SuggestionBox author={user.name} />
           <AdminSuggestions />
+          <AdminEvents />
         </div>
         </div>
 
