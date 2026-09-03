@@ -89,6 +89,10 @@ export interface FatigueInput {
   timeOfFatigue: string;
   /** hhmm */
   signInTime: string;
+  /** ddmm — the fatigue call date, normally Event Date. */
+  eventDate?: string;
+  /** ddmm — the calendar date on which the pilot signed in. */
+  signInDate?: string;
   /** ddmm */
   backForDutyDate: string;
   /** hhmm */
@@ -136,9 +140,29 @@ export function formatMinutes(total: number): string {
   return `${sign}${Math.floor(abs / 60)}:${String(abs % 60).padStart(2, "0")}`;
 }
 
-/** Minutes from sign-in to the fatigue call, preserving the actual clock order. */
+/** Minutes from sign-in to the fatigue call on the same calendar day. */
 export function dutyElapsed(signIn: number, fatigue: number): number {
   return fatigue >= signIn ? fatigue - signIn : 0;
+}
+
+/**
+ * Duty elapsed using the selected dates. A call on the following date can
+ * legitimately cross midnight; an earlier clock time on the same date is NO DUTY.
+ */
+export function dutyElapsedOnDates(
+  signIn: number,
+  fatigue: number,
+  signInDate?: string,
+  fatigueDate?: string,
+): number {
+  if (signInDate && fatigueDate && DDMM.test(signInDate) && DDMM.test(fatigueDate)) {
+    const start = new Date(2000, Number(signInDate.slice(2)) - 1, Number(signInDate.slice(0, 2)));
+    const end = new Date(2000, Number(fatigueDate.slice(2)) - 1, Number(fatigueDate.slice(0, 2)));
+    const dayDelta = Math.round((end.getTime() - start.getTime()) / 86_400_000);
+    if (dayDelta < 0) return 0;
+    return dayDelta * 1440 + fatigue - signIn;
+  }
+  return dutyElapsed(signIn, fatigue);
 }
 
 /** Minutes between two clock times, rolling past midnight for rest windows. */
@@ -236,7 +260,7 @@ export function calculateFatigue(input: FatigueInput): FatigueResult {
     };
   }
 
-  const elapsed = dutyElapsed(signIn, fatigue);
+  const elapsed = dutyElapsedOnDates(signIn, fatigue, input.signInDate, input.eventDate);
   const fatigueHours = elapsedAcrossMidnight(fatigue, backTime);
   const payMinutes = fatigueHours;
   const restAvailable = elapsedAcrossMidnight(fatigue, backTime);
