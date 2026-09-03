@@ -90,9 +90,9 @@ export interface FatigueInput {
   /** hhmm */
   signInTime: string;
   /** ddmm — the fatigue call date, normally Event Date. */
-  eventDate?: string;
+  eventDate: string;
   /** ddmm — the calendar date on which the pilot signed in. */
-  signInDate?: string;
+  signInDate: string;
   /** ddmm */
   backForDutyDate: string;
   /** hhmm */
@@ -459,7 +459,7 @@ export interface PlanInput {
   /** hhmm */
   signInTime: string;
   /** ddmm — the calendar date on which the pilot signed in. */
-  signInDate?: string;
+  signInDate: string;
   /** ddmm */
   backForDutyDate: string;
   /** hhmm */

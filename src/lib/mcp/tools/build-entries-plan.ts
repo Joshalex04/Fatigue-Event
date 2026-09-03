@@ -23,7 +23,7 @@ export default defineTool({
     eventDate: z.string().regex(/^\d{4}$/).describe("Event date (fatigue call date), DDMM."),
     timeOfFatigue: z.string().regex(/^\d{4}$/).describe("Time of fatigue, HHMM."),
     signInTime: z.string().regex(/^\d{4}$/).describe("Sign-in time, HHMM."),
-    signInDate: z.string().regex(/^\d{4}$/).optional().describe("Sign-in date, DDMM."),
+    signInDate: z.string().regex(/^\d{4}$/).default("0101").describe("Sign-in date, DDMM."),
     backForDutyDate: z.string().regex(/^\d{4}$/).describe("Back-for-duty date, DDMM."),
     backForDutyTime: z.string().regex(/^\d{4}$/).describe("Back-for-duty time, HHMM."),
     airportBase: z.string().optional().describe("Airport base, e.g. MIA."),
