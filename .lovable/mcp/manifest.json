@@ -3,7 +3,13 @@
   "sdk_version": "1.0.0",
   "path": "/mcp",
   "auth": {
-    "type": "none"
+    "type": "oauth",
+    "issuer": "https://lctopsmxhlayhcedckls.supabase.co/auth/v1",
+    "resource_name": "Fatigue Event",
+    "accepted_audiences": [
+      "authenticated"
+    ],
+    "jwks_uri": "https://lctopsmxhlayhcedckls.supabase.co/auth/v1/.well-known/jwks.json"
   },
   "mcp": {
     "server": {
