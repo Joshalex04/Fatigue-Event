@@ -183,11 +183,9 @@ export function dutyElapsedOnDates(
   signInDate?: string,
   fatigueDate?: string,
 ): number {
-  if (signInDate && fatigueDate && DDMM.test(signInDate) && DDMM.test(fatigueDate)) {
-    const start = new Date(2000, Number(signInDate.slice(2)) - 1, Number(signInDate.slice(0, 2)));
-    const end = new Date(2000, Number(fatigueDate.slice(2)) - 1, Number(fatigueDate.slice(0, 2)));
-    const dayDelta = Math.round((end.getTime() - start.getTime()) / 86_400_000);
-    if (dayDelta < 0) return 0;
+  if (signInDate && fatigueDate) {
+    const dayDelta = calendarDayDelta(signInDate, fatigueDate);
+    if (dayDelta === null || dayDelta < 0) return 0;
     return dayDelta * 1440 + fatigue - signIn;
   }
   return dutyElapsed(signIn, fatigue);
