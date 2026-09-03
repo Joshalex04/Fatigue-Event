@@ -283,6 +283,7 @@ function Index() {
         eventDate: eventDate.replace(/\D/g, ""),
         timeOfFatigue: timeOfFatigue.replace(/\D/g, ""),
         signInTime: signInTime.replace(/\D/g, ""),
+        signInDate: signInDate.replace(/\D/g, ""),
         backForDutyDate: backForDutyDate.replace(/\D/g, ""),
         backForDutyTime: backForDutyTime.replace(/\D/g, ""),
         airportBase,
@@ -297,13 +298,14 @@ function Index() {
       employeeNumber,
       sequenceNumber,
       sequenceDate,
-      eventDate,
-      timeOfFatigue,
-      signInTime,
-      backForDutyDate,
-      backForDutyTime,
-      airportBase,
-      selectedEquipment,
+       eventDate,
+       timeOfFatigue,
+       signInTime,
+       signInDate,
+       backForDutyDate,
+       backForDutyTime,
+       airportBase,
+       selectedEquipment,
     ],
   );
 
@@ -369,10 +371,11 @@ function Index() {
     setEmployeeNumber(record.employeeNumber ?? "");
     setSequenceNumber(record.sequenceNumber ?? "");
     setSequenceDate(record.sequenceDate ?? "");
-    setTimeOfFatigue(record.timeOfFatigue);
-    setSignInTime(record.signInTime);
-    setBackForDutyDate(record.backForDutyDate);
-    setBackForDutyTime(record.backForDutyTime);
+     setTimeOfFatigue(record.timeOfFatigue);
+     setSignInTime(record.signInTime);
+     setSignInDate(record.signInDate ?? record.eventDate);
+     setBackForDutyDate(record.backForDutyDate);
+     setBackForDutyTime(record.backForDutyTime);
     setFemCompleted(record.femCompleted);
     setConditions(record.conditions ?? []);
     setRejoinSequence(record.rejoinSequence ?? null);
@@ -388,11 +391,12 @@ function Index() {
     setAirportBase("MIA");
     setEmployeeNumber("");
     setSequenceNumber("");
-    setSequenceDate(format(new Date(), "dd/MM"));
-    setTimeOfFatigue("");
-    setSignInTime("");
-    setBackForDutyDate("");
-    setBackForDutyTime("");
+     setSequenceDate(format(new Date(), "dd/MM"));
+     setTimeOfFatigue("");
+     setSignInTime("");
+     setSignInDate(format(new Date(), "dd/MM"));
+     setBackForDutyDate("");
+     setBackForDutyTime("");
     setFemCompleted(false);
     setConditions([]);
     setRejoinSequence(null);
