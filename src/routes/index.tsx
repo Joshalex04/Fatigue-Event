@@ -1006,6 +1006,7 @@ function Index() {
                         </button>
                       </div>
                     ) : null}
+                    {bidStatus === "RSV_FLYING" ? null : (
                     <div className="mt-2 flex w-full items-center gap-2 border-t border-border pt-2">
                       <span className="font-mono text-sm font-semibold tracking-wider uppercase">
                         Recovery Flying?
@@ -1033,6 +1034,7 @@ function Index() {
                         NO
                       </button>
                     </div>
+                    )}
                   </div>
                 ) : null}
 

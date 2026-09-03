@@ -65,8 +65,7 @@ export interface RuleFacts {
   recoveryFlying: boolean | null;
 }
 
-const ASSIGN_RAP_NOTE =
-  "Command: HYR/EMP#/FDT//RAP TIME — if Long Call, it may be converted to Short Call.";
+const ASSIGN_RAP_NOTE = "If Long Call, it may be converted to Short Call.";
 const RSV_OG_PR_NOTE =
   "RSV on OG/PR: Recovery Flying may only be assigned on RSV days.";
 
@@ -94,7 +93,6 @@ export const FATIGUE_RULES: FatigueRule[] = [
     label: "Line Holder · prior sign-in · cannot rejoin",
     when: { bidStatus: "LINE_HOLDER", priorSignIn: true, rejoinSequence: false },
     entries: ["REMOVE_SEQUENCE", "INPUT_ABSENCE"],
-    steps: [1, 3],
     requires: [
       { field: "recoveryFlying", message: "Answer “Recovery Flying” to complete the steps." },
     ],
@@ -104,7 +102,6 @@ export const FATIGUE_RULES: FatigueRule[] = [
     label: "RSV PR-OG · prior sign-in · cannot rejoin",
     when: { bidStatus: "RSV_PR_OG", priorSignIn: true, rejoinSequence: false },
     entries: ["REMOVE_SEQUENCE", "INPUT_ABSENCE"],
-    steps: [1, 3],
     requires: [
       { field: "recoveryFlying", message: "Answer “Recovery Flying” to complete the steps." },
     ],
@@ -114,13 +111,13 @@ export const FATIGUE_RULES: FatigueRule[] = [
     id: "PRIOR-REJOIN-NO-RECOVERY-YES",
     label: "Prior sign-in · cannot rejoin · recovery flying",
     when: { priorSignIn: true, rejoinSequence: false, recoveryFlying: true },
-    steps: [6, 2],
+    steps: [1, 3, 6, 2],
   },
   {
     id: "PRIOR-REJOIN-NO-RECOVERY-NO",
     label: "Prior sign-in · cannot rejoin · no recovery flying",
     when: { priorSignIn: true, rejoinSequence: false, recoveryFlying: false },
-    steps: [5],
+    steps: [1, 3, 5],
   },
 
   /* ================================================================== */
@@ -247,9 +244,8 @@ export const FATIGUE_RULES: FatigueRule[] = [
       "REPORT_SEQUENCE",
       "FATIGUE_LEG",
       "ABSENCE",
-      "ASSIGN_RAP",
     ],
-    steps: [11, 12, 7],
+    steps: [11, 12],
     notes: [ASSIGN_RAP_NOTE],
     requires: [
       { field: "rapStarted", message: "Answer “RAP Started” to complete the entries." },
@@ -260,7 +256,6 @@ export const FATIGUE_RULES: FatigueRule[] = [
     label: "RSV Flying · after sign-in · RAP started",
     when: { bidStatus: "RSV_FLYING", priorSignIn: false, rapStarted: true },
     entries: ["SHORTEN_RAP"],
-    steps: [13],
   },
   {
     id: "RSVF-AFTER-RAP-NOT-STARTED",
