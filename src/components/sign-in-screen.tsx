@@ -5,8 +5,11 @@ const EQUIPMENT_OPTIONS = ["320", "737", "777", "787"];
 
 export function SignInScreen({
   onSignIn,
+  profiles = [],
 }: {
   onSignIn: (name: string, equipment: string[]) => void;
+  /** Usernames already created on this device. */
+  profiles?: string[];
 }) {
   const [name, setName] = useState("");
   const [equipment, setEquipment] = useState<string[]>([]);
@@ -66,6 +69,26 @@ export function SignInScreen({
           onChange={(e) => setName(e.target.value)}
         />
 
+        {profiles.length > 0 ? (
+          <div className="mt-3">
+            <span className="block font-mono text-[10px] tracking-[0.15em] text-muted-foreground uppercase">
+              Existing usernames
+            </span>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {profiles.map((profile) => (
+                <button
+                  key={profile}
+                  type="button"
+                  onClick={() => setName(profile)}
+                  className="rounded-lg bg-secondary/30 px-2.5 py-1.5 font-mono text-xs ring-1 ring-border hover:-translate-y-px"
+                >
+                  {profile}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
         <span className="mt-5 block font-mono text-[11px] tracking-[0.15em] text-muted-foreground uppercase">
           Airplane Equipment
         </span>
@@ -101,7 +124,7 @@ export function SignInScreen({
           ENTER
         </button>
         <p className="mt-4 text-center text-[11px] leading-relaxed text-muted-foreground">
-          No password required. Your name stays on this device and stamps the events you save.
+          No password required. Your name is your username — saved events are private to it.
         </p>
       </form>
     </div>
