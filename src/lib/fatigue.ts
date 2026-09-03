@@ -129,6 +129,13 @@ export interface FatigueResult {
 const HHMM = /^([01]\d|2[0-3])[0-5]\d$/;
 const DDMM = /^(0[1-9]|[12]\d|3[01])(0[1-9]|1[0-2])$/;
 
+function isDateBefore(left: string, right: string): boolean {
+  if (!DDMM.test(left) || !DDMM.test(right)) return false;
+  const leftDate = new Date(2000, Number(left.slice(2)) - 1, Number(left.slice(0, 2)));
+  const rightDate = new Date(2000, Number(right.slice(2)) - 1, Number(right.slice(0, 2)));
+  return leftDate.getTime() < rightDate.getTime();
+}
+
 export function parseHhmm(value: string): number | null {
   if (!HHMM.test(value)) return null;
   return Number(value.slice(0, 2)) * 60 + Number(value.slice(2));
@@ -261,6 +268,10 @@ export function calculateFatigue(input: FatigueInput): FatigueResult {
   }
 
   const elapsed = dutyElapsedOnDates(signIn, fatigue, input.signInDate, input.eventDate);
+  const fatigueIsBeforeSignIn = input.signInDate && input.eventDate
+    ? isDateBefore(input.eventDate, input.signInDate) ||
+      (input.eventDate === input.signInDate && fatigue < signIn)
+    : fatigue < signIn;
   const fatigueHours = elapsedAcrossMidnight(fatigue, backTime);
   const payMinutes = fatigueHours;
   const restAvailable = elapsedAcrossMidnight(fatigue, backTime);
@@ -302,7 +313,7 @@ export function calculateFatigue(input: FatigueInput): FatigueResult {
     scenarioId: rule.id,
     scenarioTitle: rule.title,
     eventNumber: rule.eventNumber,
-    dutyTime: fatigue < signIn ? "NO DUTY" : formatMinutes(elapsed),
+    dutyTime: fatigueIsBeforeSignIn ? "NO DUTY" : formatMinutes(elapsed),
     fatigueHours: formatMinutes(fatigueHours),
     payHours: formatMinutes(payMinutes),
     status: restShort ? "HOLD" : "CLEAR",
@@ -462,12 +473,16 @@ export interface EntriesPlan {
   notes: string[];
 }
 
-/** hhmm + 1 minute, rolling past midnight. Returns null for invalid input. */
-function plusOneMinute(hhmm: string): string | null {
+/** Add minutes to an HHMM value, rolling past midnight. */
+function addMinutes(hhmm: string, amount: number): string | null {
   const mins = parseHhmm(hhmm);
   if (mins === null) return null;
-  const next = (mins + 1) % 1440;
+  const next = (mins + amount + 1440 * 10) % 1440;
   return `${String(Math.floor(next / 60)).padStart(2, "0")}${String(next % 60).padStart(2, "0")}`;
+}
+
+function plusOneMinute(hhmm: string): string | null {
+  return addMinutes(hhmm, 1);
 }
 
 function fillTemplate(key: EntryKey, input: PlanInput): string {
@@ -475,10 +490,9 @@ function fillTemplate(key: EntryKey, input: PlanInput): string {
   const seq = input.sequenceNumber.trim() || "SEQNUM";
   // DT: sequence date as DD
   const dt = DDMM.test(input.sequenceDate) ? input.sequenceDate.slice(0, 2) : "DT";
-  // FDT: event date as DDMMM
-  const fdt = ddmmToDdMmm(input.eventDate) ?? "FDT";
-  // TDT: back-for-duty date as DDMMM
-  const tdt = ddmmToDdMmm(input.backForDutyDate) ?? "TDT";
+  // FDT/TDT: dates as DDMMMYY
+  const fdt = ddmmToDdMmmYy(input.eventDate) ?? "FDT";
+  const tdt = ddmmToDdMmmYy(input.backForDutyDate) ?? "TDT";
   // FTM: time of fatigue + 1 minute
   const ftm = plusOneMinute(input.timeOfFatigue) ?? "FTM";
   // TTM: back-for-duty time
@@ -488,17 +502,18 @@ function fillTemplate(key: EntryKey, input: PlanInput): string {
   const si = stm === "STM" ? "SI" : stm;
   const base = (input.airportBase ?? "").trim() || "BASE";
   const eq = (input.equipment ?? "").trim() || "EQ";
-  // TR1: time report sequence (sign-in) + 1 minute
-  const tr1 = plusOneMinute(input.signInTime) ?? "TR1";
-  // DY: duty time — sign-in to time of fatigue; no duty if fatigue is earlier.
+  // TR1: sign-in + duty time + 1 minute, rolling past midnight.
   const siMin = parseHhmm(input.signInTime);
   const ftMin = parseHhmm(input.timeOfFatigue);
+  const dutyMinutes = siMin !== null && ftMin !== null ? dutyElapsed(siMin, ftMin) : 0;
+  const tr1 = siMin === null ? "TR1" : addMinutes(input.signInTime, dutyMinutes + 1) ?? "TR1";
+  // DY: duty time — sign-in to time of fatigue; no duty if fatigue is earlier.
   const dy =
     siMin === null || ftMin === null
       ? "DY"
       : ftMin < siMin
         ? "NO DUTY"
-        : formatMinutes(ftMin - siMin).replace(":", "");
+        : formatMinutes(dutyMinutes).replace(":", "");
   switch (key) {
     case "REMOVE_SEQUENCE":
       return `2G/${emp}/${seq}/${dt}/FT`;
