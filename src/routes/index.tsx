@@ -20,6 +20,7 @@ import {
   ddmmToDdMmm,
   dutyElapsedOnDates,
   formatMinutes,
+  isFatigueBeforeSignIn,
   planToText,
   parseHhmm,
   type BidStatus,
@@ -205,6 +206,8 @@ function Index() {
         bidStatus,
         timeOfFatigue: timeOfFatigue.replace(/\D/g, ""),
         signInTime: signInTime.replace(/\D/g, ""),
+        eventDate: eventDate.replace(/\D/g, ""),
+        signInDate: signInDate.replace(/\D/g, ""),
         backForDutyDate: backForDutyDate.replace(/\D/g, ""),
         backForDutyTime: backForDutyTime.replace(/\D/g, ""),
         femCompleted,
@@ -214,6 +217,8 @@ function Index() {
       bidStatus,
       timeOfFatigue,
       signInTime,
+      eventDate,
+      signInDate,
       backForDutyDate,
       backForDutyTime,
       femCompleted,
@@ -226,16 +231,32 @@ function Index() {
     const si = parseHhmm(signInTime.replace(/\D/g, ""));
     const tf = parseHhmm(timeOfFatigue.replace(/\D/g, ""));
     if (si === null || tf === null) return null;
-    return tf < si ? "Before Sign in" : "After Sign in";
-  }, [signInTime, timeOfFatigue]);
+    return isFatigueBeforeSignIn(
+      si,
+      tf,
+      signInDate.replace(/\D/g, ""),
+      eventDate.replace(/\D/g, ""),
+    ) ? "Before Sign in" : "After Sign in";
+  }, [signInTime, timeOfFatigue, signInDate, eventDate]);
 
   // Duty runs from sign-in until fatigue. A fatigue call before sign-in is no duty.
   const dutyTimeDisplay = useMemo(() => {
     const si = parseHhmm(signInTime.replace(/\D/g, ""));
     const tf = parseHhmm(timeOfFatigue.replace(/\D/g, ""));
     if (si === null || tf === null) return "--";
-    return tf < si ? "NO DUTY" : formatMinutes(tf - si);
-  }, [signInTime, timeOfFatigue]);
+    if (isFatigueBeforeSignIn(
+      si,
+      tf,
+      signInDate.replace(/\D/g, ""),
+      eventDate.replace(/\D/g, ""),
+    )) return "NO DUTY";
+    return formatMinutes(dutyElapsedOnDates(
+      si,
+      tf,
+      signInDate.replace(/\D/g, ""),
+      eventDate.replace(/\D/g, ""),
+    ));
+  }, [signInTime, timeOfFatigue, signInDate, eventDate]);
 
   // Fatigue HRS: hours the pilot is fatigued — time of fatigue until back for duty.
   const fatigueHrsDisplay = result.fatigueHours;
@@ -321,6 +342,7 @@ function Index() {
       sequenceDate,
       timeOfFatigue,
       signInTime,
+      signInDate,
       backForDutyDate,
       backForDutyTime,
       femCompleted,
@@ -724,6 +746,40 @@ function Index() {
                       onChange={(e) => setSignInTime(digits(e.target.value, 4))}
                     />
                     <span className="font-mono text-xs text-muted-foreground">HHMM</span>
+                    <span className="h-4 w-px bg-border" />
+                    <span className="font-mono text-xs text-primary/70">Date</span>
+                    <input
+                      aria-label="Sign-in date"
+                      inputMode="numeric"
+                      className="w-20 shrink-0 bg-transparent font-mono text-sm text-foreground outline-none"
+                      value={signInDate}
+                      onChange={(e) => setSignInDate(formatDdMmSlash(e.target.value))}
+                    />
+                    <span className="font-mono text-xs text-muted-foreground">dd/mm</span>
+                    <Popover open={signInCalendarOpen} onOpenChange={setSignInCalendarOpen}>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          aria-label="Pick sign-in date from calendar"
+                          className="grid size-7 shrink-0 place-items-center rounded-md text-primary transition-colors hover:bg-primary/10"
+                        >
+                          <CalendarIcon className="size-4" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="end">
+                        <Calendar
+                          mode="single"
+                          selected={parseDdmm(signInDate)}
+                          onSelect={(date) => {
+                            if (!date) return;
+                            setSignInDate(format(date, "dd/MM"));
+                            setSignInCalendarOpen(false);
+                          }}
+                          initialFocus
+                          className="p-3 pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 </div>
               </div>
@@ -1135,13 +1191,6 @@ function Index() {
         </div>
         </div>
 
-        {reminderVisible ? (
-          <div className="mt-5 rounded-xl bg-warning/[0.08] px-4 py-3 ring-1 ring-warning/35">
-            <p className="font-mono text-xs font-semibold text-warning">
-              {schedulerName.trim() || user.name}: After Fatigue Notify Pilot detailed Voice Message or Positive Contact
-            </p>
-          </div>
-        ) : null}
 
         <footer className="mt-6 flex flex-wrap items-center justify-between gap-2 font-mono text-[11px] text-muted-foreground">
           <span className="tracking-[0.2em] uppercase">Crew Scheduling</span>
