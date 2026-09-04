@@ -744,7 +744,7 @@ function Index() {
                     <input
                       id="signin"
                       inputMode="numeric"
-                      className={fieldInput}
+                      className="w-16 shrink-0 bg-transparent font-mono text-lg text-foreground outline-none"
                       value={signInTime}
                       onChange={(e) => setSignInTime(digits(e.target.value, 4))}
                     />
