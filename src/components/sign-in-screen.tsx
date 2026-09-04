@@ -5,11 +5,8 @@ const EQUIPMENT_OPTIONS = ["320", "737", "777", "787"];
 
 export function SignInScreen({
   onSignIn,
-  profiles = [],
 }: {
   onSignIn: (name: string, equipment: string[]) => void;
-  /** Usernames already created on this device. */
-  profiles?: string[];
 }) {
   const [name, setName] = useState("");
   const [equipment, setEquipment] = useState<string[]>([]);
