@@ -428,7 +428,6 @@ function Index() {
   if (!user) {
     return (
       <SignInScreen
-        profiles={listProfiles().map((p) => p.displayName)}
         onSignIn={(name, equipment) => {
           upsertProfile(name, equipment);
           signIn(name, equipment);

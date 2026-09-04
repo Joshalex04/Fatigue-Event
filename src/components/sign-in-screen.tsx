@@ -66,25 +66,6 @@ export function SignInScreen({
           onChange={(e) => setName(e.target.value)}
         />
 
-        {profiles.length > 0 ? (
-          <div className="mt-3">
-            <span className="block font-mono text-[10px] tracking-[0.15em] text-muted-foreground uppercase">
-              Existing usernames
-            </span>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {profiles.map((profile) => (
-                <button
-                  key={profile}
-                  type="button"
-                  onClick={() => setName(profile)}
-                  className="rounded-lg bg-secondary/30 px-2.5 py-1.5 font-mono text-xs ring-1 ring-border hover:-translate-y-px"
-                >
-                  {profile}
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : null}
 
         <span className="mt-5 block font-mono text-[11px] tracking-[0.15em] text-muted-foreground uppercase">
           Airplane Equipment
