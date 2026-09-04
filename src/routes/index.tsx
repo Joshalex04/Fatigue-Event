@@ -12,7 +12,7 @@ import { PlaneSplash } from "@/components/plane-splash";
 import { SuggestionBox } from "@/components/suggestion-box";
 import { AdminSuggestions } from "@/components/admin-suggestions";
 import { AdminEvents } from "@/components/admin-events";
-import { listProfiles, readUserEvents, upsertProfile, writeUserEvents } from "@/lib/profiles";
+import { readUserEvents, upsertProfile, writeUserEvents } from "@/lib/profiles";
 import {
   BID_STATUS_OPTIONS,
   CSS_CALENDAR_URL,
