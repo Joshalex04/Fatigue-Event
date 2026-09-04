@@ -744,7 +744,7 @@ function Index() {
                     <input
                       id="signin"
                       inputMode="numeric"
-                      className="w-16 shrink-0 bg-transparent font-mono text-lg text-foreground outline-none"
+                      className={fieldInput}
                       value={signInTime}
                       onChange={(e) => setSignInTime(digits(e.target.value, 4))}
                     />
@@ -754,11 +754,12 @@ function Index() {
                     <input
                       aria-label="Sign-in date"
                       inputMode="numeric"
-                      className="w-20 shrink-0 bg-transparent font-mono text-sm text-foreground outline-none"
+                      className={fieldInput}
                       value={signInDate}
                       onChange={(e) => setSignInDate(formatDdMmSlash(e.target.value))}
                     />
                     <span className="font-mono text-xs text-muted-foreground">dd/mm</span>
+                    <span className="h-4 w-px bg-border" />
                     <Popover open={signInCalendarOpen} onOpenChange={setSignInCalendarOpen}>
                       <PopoverTrigger asChild>
                         <button
