@@ -200,8 +200,6 @@ interface Rule {
   id: string;
   title: string;
   eventNumber: string;
-  /** Minimum rest floor applied before crew is back for duty, in minutes. */
-  restFloor: number;
   /** How pay is derived for this bid status. */
   pay: (elapsed: number) => number;
   entryCodes: string[];
@@ -212,7 +210,6 @@ const RULES: Record<BidStatus, Rule> = {
     id: "SCENARIO 1",
     title: "Line Holder Fatigue",
     eventNumber: "12",
-    restFloor: 10 * 60,
     // Line holder is credited the duty already flown at the fatigue call.
     pay: (elapsed) => elapsed,
     entryCodes: ["FAT-EVT", "PAY", "SCHED-HOLD"],
@@ -221,7 +218,6 @@ const RULES: Record<BidStatus, Rule> = {
     id: "SCENARIO 2",
     title: "RSV PR-OG Fatigue",
     eventNumber: "14",
-    restFloor: 10 * 60,
     // Reserve on PR/OG is credited elapsed duty with a minimum guarantee.
     pay: (elapsed) => Math.max(elapsed, 60),
     entryCodes: ["FAT-EVT", "PAY", "SCHED-HOLD"],
@@ -230,7 +226,6 @@ const RULES: Record<BidStatus, Rule> = {
     id: "SCENARIO 3",
     title: "Reserve on RSV Flying Fatigue",
     eventNumber: "16",
-    restFloor: 12 * 60,
     // Reserve flying carries the reserve daily guarantee floor.
     pay: (elapsed) => Math.max(elapsed, 4 * 60 + 15),
     entryCodes: ["FAT-EVT", "PAY", "RSV-REL", "SCHED-HOLD"],
@@ -295,8 +290,6 @@ export function calculateFatigue(input: FatigueInput): FatigueResult {
   );
   const fatigueHours = elapsedAcrossMidnight(fatigue, backTime);
   const payMinutes = fatigueHours;
-  const restAvailable = elapsedAcrossMidnight(fatigue, backTime);
-  const restShort = restAvailable < rule.restFloor;
 
   const entries: EntryLine[] = [
     { code: "FAT-EVT", value: input.timeOfFatigue, tone: "normal" },
@@ -312,14 +305,6 @@ export function calculateFatigue(input: FatigueInput): FatigueResult {
     value: `${input.backForDutyDate} · ${input.backForDutyTime}`,
     tone: "normal",
   });
-
-  if (restShort) {
-    entries.push({
-      code: "REST-SHORT",
-      value: `MIN ${formatMinutes(rule.restFloor)}`,
-      tone: "warn",
-    });
-  }
 
   // Each toggled condition contributes its required entry.
   for (const option of CONDITION_OPTIONS) {
@@ -337,13 +322,12 @@ export function calculateFatigue(input: FatigueInput): FatigueResult {
     dutyTime: fatigueIsBeforeSignIn ? "NO DUTY" : formatMinutes(elapsed),
     fatigueHours: formatMinutes(fatigueHours),
     payHours: formatMinutes(payMinutes),
-    status: restShort ? "HOLD" : "CLEAR",
-    notes: restShort
-      ? `Rest to back-for-duty is ${formatMinutes(restAvailable)} against a ${formatMinutes(rule.restFloor)} floor — hold the crew member until the floor is met.`
-      : `Duty elapsed ${formatMinutes(elapsed)}. Rest to back-for-duty ${formatMinutes(restAvailable)} meets the ${formatMinutes(rule.restFloor)} floor.`,
+    status: "CLEAR",
+    notes: `Duty elapsed ${formatMinutes(elapsed)}.`,
     entries,
   };
 }
+
 
 export function entriesToText(result: FatigueResult): string {
   return result.entries.map((e, i) => `${i + 1}. ${e.code}  ${e.value}`).join("\n");
@@ -362,6 +346,7 @@ export type EntryKey =
   | "SET_ABSENCE"
   | "ASSIGN_RAP"
   | "ASSIGN_SEQUENCE"
+  | "ASSIGN_RP_SEQUENCE"
   | "REPORT_SEQUENCE"
   | "FATIGUE_LEG"
   | "ABSENCE"
@@ -393,12 +378,16 @@ export const ENTRY_DEFS: Record<EntryKey, { label: string; template: string }> =
   SET_ABSENCE: { label: "Set Absence", template: "A4/EMP#/FT/DT/TDT///TTM" },
   ASSIGN_RAP: { label: "Assign RAP", template: "HYR/EMP#/DATE/RAP TIME" },
   ASSIGN_SEQUENCE: { label: "Assign Sequence", template: "HU/EMP#/SEAT/SEQ#/DATE/FT" },
+  ASSIGN_RP_SEQUENCE: {
+    label: "Assign RP Sequence",
+    template: "HU/EMP#/SEAT/SEQNUM/DT/RP",
+  },
   REPORT_SEQUENCE: { label: "Report Sequence", template: "H7/RPT/FDT/BASE/BASE/SI/DY" },
   FATIGUE_LEG: {
     label: "Fatigue Leg",
-    template: "H9/FTG/FDT/BASE/BASE/FTM\nHZ/SEAT\nET",
+    template: "H9/FTG/FDT/BASE/BASE/FTM/0.00\nHZ/SEAT\nET",
   },
-  ABSENCE: { label: "Absence", template: "A4/EMP#/FT/FDT/TDT/TDT//TR1/TTM" },
+  ABSENCE: { label: "Absence", template: "A4/EMP#/FT/FDT/TDT//TR1/TTM" },
   BUILT_REPORT_SEQUENCE: {
     label: "Built Report Sequence",
     template: "H4(D/I)/BASE/EQ//FDT",
@@ -516,6 +505,8 @@ function fillTemplate(key: EntryKey, input: PlanInput): string {
   // FDT: sequence date as DDMMM; TDT: back-for-duty date as DDMMMYY
   const fdt = ddmmToDdMmm(input.sequenceDate) ?? "FDT";
   const tdt = ddmmToDdMmmYy(input.backForDutyDate) ?? "TDT";
+  // FDT as DDMMMYY, used by the Absence entry.
+  const fdtYy = ddmmToDdMmmYy(input.sequenceDate) ?? "FDT";
   // FTM: time of fatigue + 1 minute
   const ftm = plusOneMinute(input.timeOfFatigue) ?? "FTM";
   // TTM: back-for-duty time
@@ -539,7 +530,7 @@ function fillTemplate(key: EntryKey, input: PlanInput): string {
       ? "DY"
       : isFatigueBeforeSignIn(siMin, ftMin, input.signInDate, input.eventDate)
         ? "NO DUTY"
-        : formatMinutes(dutyMinutes).replace(":", "");
+        : formatMinutes(dutyMinutes).replace(":", ".").padStart(5, "0");
   switch (key) {
     case "REMOVE_SEQUENCE":
       return `2G/${emp}/${seq}/${dt}/FT`;
@@ -557,12 +548,14 @@ function fillTemplate(key: EntryKey, input: PlanInput): string {
       return `HYR/${emp}/${fdt}/RAP TIME`;
     case "ASSIGN_SEQUENCE":
       return `HU/${emp}/SEAT/${seq}/${fdt}/FT`;
+    case "ASSIGN_RP_SEQUENCE":
+      return `HU/${emp}/SEAT/${seq}/${dt}/RP`;
     case "REPORT_SEQUENCE":
       return `H7/RPT/${fdt}/${base}/${base}/${si}/${dy}`;
     case "FATIGUE_LEG":
-      return `H9/FTG/${fdt}/${base}/${base}/${ftm}\nHZ/SEAT\nET`;
+      return `H9/FTG/${fdt}/${base}/${base}/${ftm}/0.00\nHZ/SEAT\nET`;
     case "ABSENCE":
-      return `A4/${emp}/FT/${fdt}/${tdt}/${tdt}//${tr1}/${ttm}`;
+      return `A4/${emp}/FT/${fdtYy}/${tdt}//${tr1}/${ttm}`;
     case "BUILT_REPORT_SEQUENCE":
       return `H4(D/I)/${base}/${eq}//${fdt}`;
     case "SHORTEN_RAP":
@@ -619,12 +612,15 @@ export function buildEntriesPlan(input: PlanInput): EntriesPlan {
     for (const note of rule.notes ?? []) notes.push(note);
   }
 
-  // Built Report Sequence always pairs with Assign Sequence.
+  // Built Report Sequence pairs with an assign entry — except on RSV Flying,
+  // which never shows one. After sign-in on Line Holder / RSV PR-OG the pair
+  // is Assign RP Sequence instead of Assign Sequence.
   if (
     entries.some((e) => e.key === "BUILT_REPORT_SEQUENCE") &&
-    !entries.some((e) => e.key === "ASSIGN_SEQUENCE")
+    input.bidStatus !== "RSV_FLYING"
   ) {
-    entries.push(entry("ASSIGN_SEQUENCE", input));
+    const pairKey: EntryKey = input.priorSignIn ? "ASSIGN_SEQUENCE" : "ASSIGN_RP_SEQUENCE";
+    if (!entries.some((e) => e.key === pairKey)) entries.push(entry(pairKey, input));
   }
 
   return { ready: pending.length === 0, pending, entries, steps: stepsOf(stepNums), notes };

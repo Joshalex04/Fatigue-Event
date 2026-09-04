@@ -739,27 +739,28 @@ function Index() {
                   <label className={labelCls} htmlFor="signin">
                     Sign-in Time
                   </label>
-                  <div className={fieldWrap}>
+                  <div className={`${fieldWrap} gap-1.5`}>
                     <span className="font-mono text-xs text-primary/70">SI</span>
                     <input
                       id="signin"
                       inputMode="numeric"
-                      className={fieldInput}
+                      className={`${fieldInput} shrink-0`}
+                      style={{ width: "4.5ch" }}
                       value={signInTime}
                       onChange={(e) => setSignInTime(digits(e.target.value, 4))}
                     />
-                    <span className="font-mono text-xs text-muted-foreground">HHMM</span>
                     <span className="h-4 w-px bg-border" />
                     <span className="font-mono text-xs text-primary/70">Date</span>
                     <input
                       aria-label="Sign-in date"
                       inputMode="numeric"
-                      className={fieldInput}
+                      className={`${fieldInput} shrink-0`}
+                      style={{ width: "6ch" }}
                       value={signInDate}
                       onChange={(e) => setSignInDate(formatDdMmSlash(e.target.value))}
                     />
-                    <span className="font-mono text-xs text-muted-foreground">dd/mm</span>
                     <span className="h-4 w-px bg-border" />
+
                     <Popover open={signInCalendarOpen} onOpenChange={setSignInCalendarOpen}>
                       <PopoverTrigger asChild>
                         <button
